@@ -6,7 +6,7 @@ session_start();
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>민원 신고 시스템 - 로그인</title>
+    <title>민원 신고 시스템 - 로그인 테스트</title>
 </head>
 <body>
     <h2>로그인</h2>
