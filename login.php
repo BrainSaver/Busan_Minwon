@@ -6,15 +6,15 @@ session_start();
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>민원 신고 시스템 - 로그인 테스트</title>
+    <title>민원 신고 시스템 - 로그인 테스트 +</title>
 </head>
 <body>
     <h2>로그인</h2>
     <form action="login_process.php" method="POST">
-        <label for="user_id">아이디:</label>
+        <label for="user_id">ID:</label>
         <input type="text" id="user_id" name="user_id" required><br><br>
 
-        <label for="password">비밀번호:</label>
+        <label for="password">PW:</label>
         <input type="password" id="password" name="password" required><br><br>
         
         <button type="submit">로그인</button>
