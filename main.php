@@ -3,30 +3,81 @@
 <head>
   <meta charset="UTF-8">
   <title>부산지하철 민원신고</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <style>
-    /* 기존 스타일 유지 */
+    /* --------------------------------------------------- */
+    /* 기존 스타일 (레이아웃, 스텝 등) */
+    /* --------------------------------------------------- */
     body { margin: 0; background: #f8f9fb; font-family: "Pretendard", sans-serif; color: #222; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; overflow: hidden; }
     .sentence-box { background: #ffffff; margin: 12px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 20px; font-size: 1.1rem; text-align: center; color: #1e3a8a; min-height: 80px; line-height: 1.4; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
     .step { flex: 1; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; opacity: 0; transform: translateY(30px); transition: all 0.4s ease; width: 100%; box-sizing: border-box; }
     .step.active { display: flex; opacity: 1; transform: translateY(0); }
     h2 { font-size: 1.3rem; margin-bottom: 20px; }
-    .btn-container { position: fixed; bottom: 0; left: 0; right: 0; display: flex; flex-wrap: wrap; justify-content: center; background: white; padding: 15px 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); border-radius: 16px 16px 0 0; gap: 10px; z-index: 10; }
-    button { flex: 1 1 45%; background: #3b82f6; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; transition: transform 0.2s ease, background 0.3s ease; cursor: pointer; }
-    button:active { transform: scale(0.96); background: #2563eb; }
     
-    /* 입력창 스타일 통합 */
+    /* 하단 버튼 컨테이너 (Step 1,2,3용) */
+    .btn-container { position: fixed; bottom: 0; left: 0; right: 0; display: flex; flex-wrap: wrap; justify-content: center; background: white; padding: 15px 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); border-radius: 16px 16px 0 0; gap: 10px; z-index: 10; }
+    button.nav-btn { flex: 1 1 45%; background: #3b82f6; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; transition: transform 0.2s ease, background 0.3s ease; cursor: pointer; }
+    button.nav-btn:active { transform: scale(0.96); background: #2563eb; }
+    
+    /* --------------------------------------------------- */
+    /* [통합] 키패드 및 입력 화면 스타일 */
+    /* --------------------------------------------------- */
+    
+    /* 입력 숫자 표시창 */
+    #display { 
+        font-size: 45px; height: 70px; line-height: 70px; width: 100%; max-width: 400px;
+        margin-bottom: 20px; background: #fff; 
+        border: 2px solid #ddd; border-radius: 12px; 
+        font-weight: bold; letter-spacing: 5px; color: #333;
+        display: none; /* 기본 숨김 */
+    }
+
+    /* 키패드 그리드 */
+    .keypad { 
+        display: none; /* 기본 숨김 */
+        grid-template-columns: repeat(3, 1fr); gap: 10px; 
+        max-width: 400px; width: 100%; margin: 0 auto; 
+    }
+    .key-btn { 
+        font-size: 24px; padding: 15px; background: #fff; 
+        border: none; border-radius: 12px; cursor: pointer; 
+        box-shadow: 0 3px 0 #e9ecef; color: #333; font-weight: bold;
+    }
+    .key-btn:active { transform: translateY(2px); box-shadow: none; background: #f1f3f5; }
+    .btn-send { background: #ff6b6b; color: white; box-shadow: 0 3px 0 #fa5252; }
+    
+    /* 기존 텍스트 입력창 (백업용 혹은 폰번호용) */
     input[type="text"], input[type="tel"] { border: none; border-radius: 8px; padding: 10px; font-size: 16px; width: 80%; box-shadow: 0 2px 6px rgba(0,0,0,0.1); text-align: center; margin-bottom: 10px; }
     input:focus { outline: none; box-shadow: 0 2px 6px rgba(59,130,246,0.5); }
 
-    /* 스크롤 UI 스타일 */
+    /* --------------------------------------------------- */
+    /* 스크롤 UI (역 선택용) */
+    /* --------------------------------------------------- */
     .station-scroll-wrapper { width: 100%; overflow-x: auto; display: none; padding: 10px 0; -ms-overflow-style: none; scrollbar-width: none; }
     .station-scroll-wrapper::-webkit-scrollbar { display: none; }
     .station-container { display: inline-flex; gap: 10px; padding: 0 20px; }
     .station-chip { background: white; border: 1px solid #ddd; border-radius: 20px; padding: 10px 20px; white-space: nowrap; color: #555; font-size: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
     .station-chip.selected { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 4px 8px rgba(59,130,246,0.3); transform: translateY(-2px); font-weight: bold; }
     
+    /* --------------------------------------------------- */
+    /* [통합] 호선 선택 모달 (색깔 버튼) */
+    /* --------------------------------------------------- */
+    #line-modal {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); z-index: 999;
+        flex-direction: column; justify-content: center; align-items: center;
+    }
+    .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 350px; text-align: center; }
+    .color-btn { 
+        display: block; width: 100%; padding: 15px; margin: 10px 0; 
+        color: white; font-size: 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
+    }
+    .bg-1 { background-color: #f39c12; } /* 1호선 주황 */
+    .bg-2 { background-color: #12b560; } /* 2호선 초록 */
+    .bg-3 { background-color: #d1a575; } /* 3호선 갈색 */
+    .bg-4 { background-color: #2e78c9; } /* 4호선 파랑 */
+
     .fadeIn { animation: fadeIn 0.5s ease forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   </style>
@@ -37,21 +88,46 @@
     🚇 신고 문장이 여기에 만들어집니다.
   </div>
 
+  <!-- Step 1: 장소 -->
   <div class="step active fadeIn" id="step1">
     <h2>어디 계신가요?</h2>
   </div>
 
+  <!-- Step 2: 상황 -->
   <div class="step" id="step2">
     <h2>어떤 상황인가요?</h2>
   </div>
 
+  <!-- Step 3: 호선 (지하철 밖일 때만 보임) -->
   <div class="step" id="step3">
     <h2>몇 호선인가요?</h2>
   </div>
 
+  <!-- Step 4: 상세 위치 (키패드 통합) -->
   <div class="step" id="step4">
     <h2 id="step4-title">몇 칸에 계신가요?</h2>
-    <input type="text" id="userInput" placeholder="예: 3칸">
+    
+    <!-- 지하철 안: 키패드 UI -->
+    <div class="guide" id="keypad-guide" style="display:none; font-size: 14px; color: #666; margin-bottom: 20px;">
+        보이는 숫자 3~4자리를 입력하세요.<br>(예: 2347 또는 347)
+    </div>
+    <div id="display">----</div>
+    <div class="keypad" id="keypad">
+        <button class="key-btn" onclick="press(1)">1</button>
+        <button class="key-btn" onclick="press(2)">2</button>
+        <button class="key-btn" onclick="press(3)">3</button>
+        <button class="key-btn" onclick="press(4)">4</button>
+        <button class="key-btn" onclick="press(5)">5</button>
+        <button class="key-btn" onclick="press(6)">6</button>
+        <button class="key-btn" onclick="press(7)">7</button>
+        <button class="key-btn" onclick="press(8)">8</button>
+        <button class="key-btn" onclick="press(9)">9</button>
+        <button class="key-btn" onclick="clearInput()" style="color:#e03131">지움</button>
+        <button class="key-btn" onclick="press(0)">0</button>
+        <button class="key-btn btn-send" onclick="checkAndSend()">입력</button>
+    </div>
+
+    <!-- 지하철 밖: 역 선택 UI -->
     <div class="station-scroll-wrapper" id="stationWrapper">
       <div class="station-container" id="stationList"></div>
     </div>
@@ -60,6 +136,7 @@
     </p>
   </div>
 
+  <!-- Step 5: 완료 및 전송 -->
   <div class="step" id="step5">
     <h2>🚨 신고 접수</h2>
     <p style="margin-bottom:10px; color:#555;">처리 결과를 위해 연락처를 입력해주세요.</p>
@@ -74,6 +151,19 @@
 
   <div class="btn-container" id="btnContainer"></div>
 
+  <!-- [통합] 호선 선택 모달 -->
+  <div id="line-modal">
+    <div class="modal-content">
+        <h3>🎨 노선 색깔을 선택하세요</h3>
+        <p>입력하신 번호에 호선 정보가 없습니다.<br>지금 타고 계신 노선 색깔은?</p>
+        <button class="color-btn bg-1" onclick="selectLine('1')">🧡 1호선 (주황색)</button>
+        <button class="color-btn bg-2" onclick="selectLine('2')">💚 2호선 (초록색)</button>
+        <button class="color-btn bg-3" onclick="selectLine('3')">🤎 3호선 (갈색)</button>
+        <button class="color-btn bg-4" onclick="selectLine('4')">💙 4호선 (파란색)</button>
+        <button onclick="closeModal()" style="margin-top:10px; background:#ddd; padding:10px; width:100%; border-radius:8px; border:none;">취소</button>
+    </div>
+  </div>
+
   <script>
     const steps = document.querySelectorAll('.step');
     const btnContainer = document.getElementById('btnContainer');
@@ -81,10 +171,14 @@
     
     // 요소 참조
     const step4Title = document.getElementById('step4-title');
-    const userInput = document.getElementById('userInput');
     const stationWrapper = document.getElementById('stationWrapper');
     const stationList = document.getElementById('stationList');
     const scrollGuide = document.getElementById('scroll-guide');
+    
+    // 키패드 관련 요소
+    const keypad = document.getElementById('keypad');
+    const display = document.getElementById('display');
+    const keypadGuide = document.getElementById('keypad-guide');
     
     // 추가된 참조
     const phoneInput = document.getElementById('phoneInput');
@@ -92,6 +186,7 @@
     const finalForm = document.getElementById('finalForm');
 
     let currentStep = 1;
+    let inputNum = ""; // 키패드 입력값 저장
 
     let report = {
       place: '',
@@ -108,6 +203,59 @@
       '4호선': ['미남','동래','수안','낙민','충렬사','명장','서동','금사','반여농산물','석대','영산대','윗반송','고촌','안평'],
       '부산김해경전철': ['사상','괘법르네시떼','서부산유통','공항','덕두','등구','대저','평강','대사','불암','지내','안동','김해대학','인제대','김해시청','부원','봉황','수로왕릉','박물관','연지공원','장신대','가야대']
     };
+
+    // -----------------------------------------------------
+    // 키패드 로직
+    // -----------------------------------------------------
+    function press(n) {
+        if(inputNum.length < 4) {
+            inputNum += n;
+            document.getElementById("display").innerText = inputNum;
+        }
+    }
+
+    function clearInput() {
+        inputNum = "";
+        document.getElementById("display").innerText = "----";
+    }
+
+    function checkAndSend() {
+        if (inputNum.length === 4) {
+            // 4자리(2347) -> 맨 앞자리로 호선 자동 인식
+            const firstChar = inputNum.charAt(0);
+            if(['1','2','3','4'].includes(firstChar)) {
+                report.line = firstChar + '호선';
+            }
+            report.detail = inputNum + '호';
+            nextStep(); 
+        } else if (inputNum.length === 3) {
+            // 3자리(347) -> 모달 띄워서 호선 물어봄
+            document.getElementById("line-modal").style.display = "flex";
+        } else {
+            alert("숫자 3자리 또는 4자리를 입력해주세요.");
+        }
+    }
+
+    function closeModal() {
+        document.getElementById("line-modal").style.display = "none";
+    }
+
+    function selectLine(line) {
+        closeModal();
+        // 호선을 맨 앞에 붙여서 4자리로 완성 (예: 2 + 347 = 2347)
+        let fixedNum = line + inputNum;
+        
+        report.line = line + '호선'; // 호선 정보 저장
+        report.detail = fixedNum + '호';
+        
+        // 화면 갱신 및 다음 단계 이동
+        document.getElementById("display").innerText = fixedNum;
+        nextStep();
+    }
+
+    // -----------------------------------------------------
+    // 메인 스텝 로직
+    // -----------------------------------------------------
 
     const stepButtons = {
       1: [
@@ -129,30 +277,25 @@
         { text: '부산김해경전철', action: () => nextStep('line', '부산김해경전철') }
       ],
       4: [
+        // [지하철 밖]일 때만 이 버튼이 보임 (역 선택 후 이동)
         { text: '다음으로', action: () => {
-            let detailVal = '';
-            if (report.isInside) {
-               detailVal = userInput.value;
-               if (!detailVal) { alert('칸 번호를 입력해주세요.'); return; }
-               report.detail = detailVal + '이에요';
-            } else {
+            if (!report.isInside) {
                const selectedChip = document.querySelector('.station-chip.selected');
                if (!selectedChip) { alert('역을 선택해주세요.'); return; }
-               detailVal = selectedChip.innerText;
-               report.detail = detailVal + '역에 있어요';
+               report.detail = selectedChip.innerText + '역에 있어요';
+               nextStep();
+            } else {
+                checkAndSend(); // 예외처리
             }
-            nextStep();
           }}
       ],
       5: [
-        // 실제 DB 전송 버튼
         { text: '📢 신고 접수하기', action: () => {
             if(!phoneInput.value) {
                 alert("연락처를 입력해주세요.");
                 phoneInput.focus();
                 return;
             }
-            // 최종 문장을 hidden input에 넣고 폼 제출
             hiddenContent.value = makeSentence();
             finalForm.submit();
           }}
@@ -161,8 +304,15 @@
 
     function renderButtons(step) {
       btnContainer.innerHTML = '';
+      
+      // Step 4이고 지하철 안(키패드)인 경우, 하단 '다음으로' 버튼 숨김 (키패드에 버튼 있음)
+      if (step === 4 && report.isInside) {
+          return; 
+      }
+
       stepButtons[step].forEach(btn => {
         const b = document.createElement('button');
+        b.className = 'nav-btn';
         b.innerText = btn.text;
         b.onclick = btn.action;
         btnContainer.appendChild(b);
@@ -205,19 +355,36 @@
       if (currentStep < steps.length) {
         steps[currentStep - 1].classList.remove('active');
         currentStep++;
+        
+        // [수정] 지하철 안(Inside)이면 Step 3(호선 선택) 건너뛰기
+        if (currentStep === 3 && report.isInside) {
+             currentStep++; // 바로 Step 4(칸번호 입력)로 점프
+        }
+
         steps[currentStep - 1].classList.add('active');
 
+        // Step 4 진입 시 UI 분기 (키패드 vs 역목록)
         if (currentStep === 4) {
-            userInput.value = ''; 
+            clearInput(); // 키패드 초기화
+
             if (report.isInside) {
-                step4Title.innerText = "몇 번째 칸에 계신가요?";
-                userInput.style.display = 'inline-block';
-                userInput.placeholder = "예: 3번째 칸, 3102호";
+                // [지하철 안] -> 키패드 활성화
+                step4Title.innerText = "차량 번호를 입력해주세요";
+                
+                keypad.style.display = 'grid';
+                display.style.display = 'block';
+                keypadGuide.style.display = 'block';
+
                 stationWrapper.style.display = 'none';
                 scrollGuide.style.display = 'none';
             } else {
+                // [지하철 밖] -> 역 선택 리스트 활성화
                 step4Title.innerText = "현재 무슨 역에 계신가요?";
-                userInput.style.display = 'none';
+                
+                keypad.style.display = 'none';
+                display.style.display = 'none';
+                keypadGuide.style.display = 'none';
+
                 stationWrapper.style.display = 'block';
                 scrollGuide.style.display = 'block';
                 renderStationList(report.line);
