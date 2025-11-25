@@ -226,7 +226,11 @@
             if(['1','2','3','4'].includes(firstChar)) {
                 report.line = firstChar + '호선';
             }
-            report.detail = inputNum + '호';
+            // [수정] 1347 -> 47편성 3호차 형식으로 변환
+            const carOrder = inputNum.charAt(1);
+            const trainSet = inputNum.substring(2, 4);
+            report.detail = trainSet + '편성 ' + carOrder + '호차';
+
             nextStep(); 
         } else if (inputNum.length === 3) {
             // 3자리(347) -> 모달 띄워서 호선 물어봄
@@ -246,7 +250,11 @@
         let fixedNum = line + inputNum;
         
         report.line = line + '호선'; // 호선 정보 저장
-        report.detail = fixedNum + '호';
+        
+        // [수정] 1347 -> 47편성 3호차 형식으로 변환
+        const carOrder = fixedNum.charAt(1);
+        const trainSet = fixedNum.substring(2, 4);
+        report.detail = trainSet + '편성 ' + carOrder + '호차';
         
         // 화면 갱신 및 다음 단계 이동
         document.getElementById("display").innerText = fixedNum;
@@ -356,7 +364,7 @@
         steps[currentStep - 1].classList.remove('active');
         currentStep++;
         
-        // [수정] 지하철 안(Inside)이면 Step 3(호선 선택) 건너뛰기
+        // 지하철 안(Inside)이면 Step 3(호선 선택) 건너뛰기
         if (currentStep === 3 && report.isInside) {
              currentStep++; // 바로 Step 4(칸번호 입력)로 점프
         }
