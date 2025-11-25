@@ -1,0 +1,9 @@
+<Files "imap.env">
+Order Allow,Deny
+Deny from all
+</Files>
+
+<Files "api.env">
+Order Allow,Deny
+Deny from all
+</Files>
