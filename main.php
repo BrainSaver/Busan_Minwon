@@ -77,6 +77,7 @@
     .bg-2 { background-color: #12b560; } /* 2호선 초록 */
     .bg-3 { background-color: #d1a575; } /* 3호선 갈색 */
     .bg-4 { background-color: #2e78c9; } /* 4호선 파랑 */
+    .bg-5 { background-color: #70449D; } /* 부산김해경전철 보라색 */
 
     .fadeIn { animation: fadeIn 0.5s ease forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -160,6 +161,7 @@
         <button class="color-btn bg-2" onclick="selectLine('2')">💚 2호선 (초록색)</button>
         <button class="color-btn bg-3" onclick="selectLine('3')">🤎 3호선 (갈색)</button>
         <button class="color-btn bg-4" onclick="selectLine('4')">💙 4호선 (파란색)</button>
+        <button class="color-btn bg-5" onclick="selectLine('부산김해경전철')">💜 부산김해경전철 (보라색)</button>
         <button onclick="closeModal()" style="margin-top:10px; background:#ddd; padding:10px; width:100%; border-radius:8px; border:none;">취소</button>
     </div>
   </div>
@@ -246,18 +248,26 @@
 
     function selectLine(line) {
         closeModal();
-        // 호선을 맨 앞에 붙여서 4자리로 완성 (예: 2 + 347 = 2347)
-        let fixedNum = line + inputNum;
-        
-        report.line = line + '호선'; // 호선 정보 저장
-        
-        // [수정] 1347 -> 47편성 3호차 형식으로 변환
-        const carOrder = fixedNum.charAt(1);
-        const trainSet = fixedNum.substring(2, 4);
-        report.detail = trainSet + '편성 ' + carOrder + '호차';
-        
-        // 화면 갱신 및 다음 단계 이동
-        document.getElementById("display").innerText = fixedNum;
+
+        if (line === '부산김해경전철') {
+            report.line = '부산김해경전철';
+            report.detail = '차량번호 ' + inputNum + '호';
+            document.getElementById("display").innerText = inputNum;
+        } else {
+            // 호선을 맨 앞에 붙여서 4자리로 완성 (예: 2 + 347 = 2347)
+            let fixedNum = line + inputNum;
+            
+            report.line = line + '호선'; // 호선 정보 저장
+            
+            // [수정] 1347 -> 47편성 3호차 형식으로 변환
+            const carOrder = fixedNum.charAt(1);
+            const trainSet = fixedNum.substring(2, 4);
+            report.detail = trainSet + '편성 ' + carOrder + '호차';
+            
+            // 화면 갱신 및 다음 단계 이동
+            document.getElementById("display").innerText = fixedNum;
+        }
+
         nextStep();
     }
 
