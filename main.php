@@ -7,7 +7,7 @@
 
   <style>
     /* --------------------------------------------------- */
-    /* 기본 스타일 */
+    /* 기존 스타일 유지 */
     /* --------------------------------------------------- */
     body { margin: 0; background: #f8f9fb; font-family: "Pretendard", sans-serif; color: #222; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; overflow: hidden; }
     .sentence-box { background: #ffffff; margin: 12px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 20px; font-size: 1.1rem; text-align: center; color: #1e3a8a; min-height: 80px; line-height: 1.4; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
@@ -15,7 +15,6 @@
     .step.active { display: flex; opacity: 1; transform: translateY(0); }
     h2 { font-size: 1.3rem; margin-bottom: 20px; }
     
-    /* 하단 버튼 컨테이너 */
     .btn-container { position: fixed; bottom: 0; left: 0; right: 0; display: flex; flex-wrap: wrap; justify-content: center; background: white; padding: 15px 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); border-radius: 16px 16px 0 0; gap: 10px; z-index: 10; }
     button.nav-btn { flex: 1 1 45%; background: #3b82f6; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; transition: transform 0.2s ease, background 0.3s ease; cursor: pointer; }
     button.nav-btn:active { transform: scale(0.96); background: #2563eb; }
@@ -44,29 +43,41 @@
     .key-btn:active { transform: translateY(2px); box-shadow: none; background: #f1f3f5; }
     .btn-send { background: #ff6b6b; color: white; box-shadow: 0 3px 0 #fa5252; }
     
-    /* 스크롤 UI (역 선택용) */
     .station-scroll-wrapper { width: 100%; overflow-x: auto; display: none; padding: 10px 0; -ms-overflow-style: none; scrollbar-width: none; }
     .station-scroll-wrapper::-webkit-scrollbar { display: none; }
     .station-container { display: inline-flex; gap: 10px; padding: 0 20px; }
     .station-chip { background: white; border: 1px solid #ddd; border-radius: 20px; padding: 10px 20px; white-space: nowrap; color: #555; font-size: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
     .station-chip.selected { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 4px 8px rgba(59,130,246,0.3); transform: translateY(-2px); font-weight: bold; }
     
-    /* 호선 선택 모달 */
+    /* 호선 선택 모달 (기존) */
     #line-modal {
         display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.8); z-index: 999;
         flex-direction: column; justify-content: center; align-items: center;
     }
-    .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 350px; text-align: center; }
-    .color-btn { 
-        display: block; width: 100%; padding: 15px; margin: 10px 0; 
-        color: white; font-size: 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
+    
+    /* [추가] 도움말(사진) 모달 스타일 */
+    #help-modal {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.85); z-index: 1000;
+        flex-direction: column; justify-content: center; align-items: center;
     }
-    .bg-1 { background-color: #f39c12; } 
-    .bg-2 { background-color: #12b560; } 
-    .bg-3 { background-color: #d1a575; } 
-    .bg-4 { background-color: #2e78c9; } 
-    .bg-5 { background-color: #70449D; } 
+    .help-content {
+        background: white; padding: 20px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center;
+        position: relative;
+    }
+    .help-content img {
+        width: 100%; border-radius: 8px; margin-bottom: 15px; border: 2px solid #eee;
+    }
+    .help-btn-open {
+        background: none; border: none; color: #3b82f6; 
+        font-size: 0.9rem; font-weight: bold; cursor: pointer; 
+        text-decoration: underline; margin-top: 5px;
+    }
+
+    .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 350px; text-align: center; }
+    .color-btn { display: block; width: 100%; padding: 15px; margin: 10px 0; color: white; font-size: 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .bg-1 { background-color: #f39c12; } .bg-2 { background-color: #12b560; } .bg-3 { background-color: #d1a575; } .bg-4 { background-color: #2e78c9; }
 
     .fadeIn { animation: fadeIn 0.5s ease forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -93,9 +104,11 @@
   <div class="step" id="step4">
     <h2 id="step4-title">몇 칸에 계신가요?</h2>
     
-    <div class="guide" id="keypad-guide" style="display:none; font-size: 14px; color: #666; margin-bottom: 20px;">
-        보이는 숫자 3~4자리를 입력하세요.<br>(예: 2347 또는 347)
+    <div class="guide" id="keypad-guide" style="display:none; font-size: 14px; color: #666; margin-bottom: 15px;">
+        보이는 숫자 3~4자리를 입력하세요.<br>
+        <button class="help-btn-open" onclick="openHelp()">📷 번호가 어디 있나요?</button>
     </div>
+
     <div id="display">----</div>
     <div class="keypad" id="keypad">
         <button class="key-btn" onclick="press(1)">1</button>
@@ -126,6 +139,17 @@
 
   <div class="btn-container" id="btnContainer"></div>
 
+  <div id="help-modal">
+    <div class="help-content">
+        <h3>👀 차량 번호 확인 위치</h3>
+        <img src="train_guide.jpg" alt="차량번호 예시">
+        <p style="font-size:14px; color:#555; margin-bottom:20px;">
+            출입문 위 또는 통로문 상단에<br>적힌 번호를 입력해주세요.
+        </p>
+        <button onclick="closeHelp()" style="width:100%; padding:12px; background:#3b82f6; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">확인했습니다</button>
+    </div>
+  </div>
+
   <div id="line-modal">
     <div class="modal-content">
         <h3>🎨 노선 색깔을 선택하세요</h3>
@@ -134,7 +158,6 @@
         <button class="color-btn bg-2" onclick="selectLine('2')">💚 2호선 (초록색)</button>
         <button class="color-btn bg-3" onclick="selectLine('3')">🤎 3호선 (갈색)</button>
         <button class="color-btn bg-4" onclick="selectLine('4')">💙 4호선 (파란색)</button>
-        <button class="color-btn bg-5" onclick="selectLine('부산김해경전철')">💜 부산김해경전철 (보라색)</button>
         <button onclick="closeModal()" style="margin-top:10px; background:#ddd; padding:10px; width:100%; border-radius:8px; border:none;">취소</button>
     </div>
   </div>
@@ -174,20 +197,24 @@
       '1호선': ['다대포해수욕장','다대포항','낫개','신장림','장림','동매','신평','하단','당리','사하','괴정','대티','서대신','동대신','토성','자갈치','남포','중앙','부산역','초량','부산진','좌천','범일','범내골','서면','부전','양정','시청','연산','교대','동래','명륜','온천장','부산대','장전','구서','두실','남산','범어사','노포'],
       '2호선': ['장산','중동','해운대','동백','벡스코','센텀시티','민락','수영','광안','금련산','남천','경성대부경대','대연','못골','지게골','문현','국제금융센터','전포','서면','부암','가야','동의대','개금','냉정','주례','감전','사상','덕포','모덕','모라','구남','구명','덕천','수정','화명','율리','동원','금곡','호포','증산','부산대양산','남양산','양산'],
       '3호선': ['수영','망미','배산','물만골','연산','거제','종합운동장','사직','미남','만덕','남산정','숙등','덕천','구포','강서구청','체육공원','대저'],
-      '4호선': ['미남','동래','수안','낙민','충렬사','명장','서동','금사','반여농산물','석대','영산대','윗반송','고촌','안평'],
-      '부산김해경전철': ['사상','괘법르네시떼','서부산유통','공항','덕두','등구','대저','평강','대사','불암','지내','안동','김해대학','인제대','김해시청','부원','봉황','수로왕릉','박물관','연지공원','장신대','가야대']
+      '4호선': ['미남','동래','수안','낙민','충렬사','명장','서동','금사','반여농산물','석대','영산대','윗반송','고촌','안평']
     };
 
+    // [추가] 도움말 모달 열기/닫기 함수
+    function openHelp() {
+        document.getElementById("help-modal").style.display = "flex";
+    }
+    function closeHelp() {
+        document.getElementById("help-modal").style.display = "none";
+    }
+
     // -----------------------------------------------------
-    // [중요] 즉시 전송 함수
+    // 즉시 전송 함수
     // -----------------------------------------------------
     function submitFinal() {
         updateSentenceBox();
         hiddenContent.value = makeSentence();
-        
-        // 전송 전 알림 (테스트용, 실제 서비스시 제거 가능)
         alert("🚨 신고가 즉시 전송됩니다:\n" + hiddenContent.value);
-        
         finalForm.submit();
     }
 
@@ -216,7 +243,6 @@
             const trainSet = inputNum.substring(2, 4);
             report.detail = trainSet + '편성 ' + carOrder + '호차';
 
-            // [변경] 입력 완료 시 다음 단계가 아니라 즉시 전송
             submitFinal(); 
         } else if (inputNum.length === 3) {
             document.getElementById("line-modal").style.display = "flex";
@@ -231,21 +257,13 @@
 
     function selectLine(line) {
         closeModal();
-
-        if (line === '부산김해경전철') {
-            report.line = '부산김해경전철';
-            report.detail = '차량번호 ' + inputNum + '호';
-            document.getElementById("display").innerText = inputNum;
-        } else {
-            let fixedNum = line + inputNum;
-            report.line = line + '호선';
-            const carOrder = fixedNum.charAt(1);
-            const trainSet = fixedNum.substring(2, 4);
-            report.detail = trainSet + '편성 ' + carOrder + '호차';
-            document.getElementById("display").innerText = fixedNum;
-        }
-
-        // [변경] 호선 선택 시 다음 단계가 아니라 즉시 전송
+        let fixedNum = line + inputNum;
+        report.line = line + '호선';
+        const carOrder = fixedNum.charAt(1);
+        const trainSet = fixedNum.substring(2, 4);
+        report.detail = trainSet + '편성 ' + carOrder + '호차';
+        document.getElementById("display").innerText = fixedNum;
+        
         submitFinal();
     }
 
@@ -269,32 +287,23 @@
         { text: '1호선', action: () => nextStep('line', '1호선') },
         { text: '2호선', action: () => nextStep('line', '2호선') },
         { text: '3호선', action: () => nextStep('line', '3호선') },
-        { text: '4호선', action: () => nextStep('line', '4호선') },
-        { text: '부산김해경전철', action: () => nextStep('line', '부산김해경전철') }
+        { text: '4호선', action: () => nextStep('line', '4호선') }
       ],
       4: [
-        // [지하철 밖]일 때만 이 버튼이 보임
         { text: '🚀 위치 전송', action: () => {
             if (!report.isInside) {
                const selectedChip = document.querySelector('.station-chip.selected');
                if (!selectedChip) { alert('역을 선택해주세요.'); return; }
                report.detail = selectedChip.innerText + '역에 있어요';
-               
-               // [변경] 즉시 전송
                submitFinal();
             }
           }}
       ]
-      // Step 5 버튼 삭제됨
     };
 
     function renderButtons(step) {
       btnContainer.innerHTML = '';
-      
-      // Step 4이고 지하철 안(키패드)인 경우, 하단 버튼 숨김 (키패드에 전송 버튼 있음)
-      if (step === 4 && report.isInside) {
-          return; 
-      }
+      if (step === 4 && report.isInside) return; 
 
       stepButtons[step].forEach(btn => {
         const b = document.createElement('button');
@@ -338,24 +347,20 @@
       if (type) report[type] = value;
       updateSentenceBox();
 
-      // Step 4까지만 진행하고 그 이후는 자동 전송이므로 currentStep 조건 변경 불필요
       if (currentStep < 4) {
         steps[currentStep - 1].classList.remove('active');
         currentStep++;
         
-        // 지하철 안(Inside)이면 Step 3(호선 선택) 건너뛰고 바로 Step 4
         if (currentStep === 3 && report.isInside) {
              currentStep++; 
         }
 
         steps[currentStep - 1].classList.add('active');
 
-        // Step 4 진입 시 UI 분기
         if (currentStep === 4) {
             clearInput(); 
 
             if (report.isInside) {
-                // [지하철 안] -> 키패드 활성화
                 step4Title.innerText = "차량 번호를 입력해주세요";
                 keypad.style.display = 'grid';
                 display.style.display = 'block';
@@ -363,7 +368,6 @@
                 stationWrapper.style.display = 'none';
                 scrollGuide.style.display = 'none';
             } else {
-                // [지하철 밖] -> 역 선택 리스트 활성화
                 step4Title.innerText = "현재 무슨 역에 계신가요?";
                 keypad.style.display = 'none';
                 display.style.display = 'none';
