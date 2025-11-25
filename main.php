@@ -23,10 +23,11 @@
     /* 입력 UI 스타일 */
     /* --------------------------------------------------- */
     #display { 
-        font-size: 45px; height: 70px; line-height: 70px; width: 100%; max-width: 400px;
+        font-size: 32px; 
+        height: 70px; line-height: 70px; width: 100%; max-width: 400px;
         margin-bottom: 20px; background: #fff; 
         border: 2px solid #ddd; border-radius: 12px; 
-        font-weight: bold; letter-spacing: 5px; color: #333;
+        font-weight: bold; letter-spacing: 1px; color: #333;
         display: none; 
     }
 
@@ -49,26 +50,19 @@
     .station-chip { background: white; border: 1px solid #ddd; border-radius: 20px; padding: 10px 20px; white-space: nowrap; color: #555; font-size: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
     .station-chip.selected { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 4px 8px rgba(59,130,246,0.3); transform: translateY(-2px); font-weight: bold; }
     
-    /* 호선 선택 모달 */
-    #line-modal {
+    /* 모달 스타일 */
+    #line-modal, #help-modal {
         display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.8); z-index: 999;
         flex-direction: column; justify-content: center; align-items: center;
     }
+    #help-modal { background: rgba(0,0,0,0.85); z-index: 1000; }
 
-    /* 도움말(사진) 모달 */
-    #help-modal {
-        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.85); z-index: 1000;
-        flex-direction: column; justify-content: center; align-items: center;
-    }
     .help-content {
         background: white; padding: 20px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center;
         position: relative;
     }
-    .help-content img {
-        width: 100%; border-radius: 8px; margin-bottom: 15px; border: 2px solid #eee;
-    }
+    .help-content img { width: 100%; border-radius: 8px; margin-bottom: 15px; border: 2px solid #eee; }
     .help-btn-open {
         background: none; border: none; color: #3b82f6; 
         font-size: 0.9rem; font-weight: bold; cursor: pointer; 
@@ -89,31 +83,29 @@
     🚇 신고 문장이 여기에 만들어집니다.
   </div>
 
-  <div class="step main-step active fadeIn" id="step1">
+  <div class="step active fadeIn" id="step1">
     <h2>어디 계신가요?</h2>
   </div>
 
-  <div class="step" id="step-detail">
-    <h2 id="detail-title">더 자세한 내용을 알려주세요</h2>
-  </div>
-
-  <div class="step main-step" id="step2">
+  <div class="step" id="step2">
     <h2>어떤 상황인가요?</h2>
   </div>
 
-  <div class="step main-step" id="step3">
+  <div class="step" id="step3">
     <h2>몇 호선인가요?</h2>
   </div>
 
-  <div class="step main-step" id="step4">
+  <div class="step" id="step4">
     <h2 id="step4-title">몇 칸에 계신가요?</h2>
     
     <div class="guide" id="keypad-guide" style="display:none; font-size: 14px; color: #666; margin-bottom: 15px;">
-        보이는 숫자 2~4자리를 입력하세요.<br>
+        보이는 숫자 2~3자리를 입력하세요.<br>
+        <strong style="color:#e03131;">3글자 입력시에는 전체입력 부탁드립니다.</strong><br>
         <button class="help-btn-open" onclick="openHelp()">📷 번호가 어디 있나요?</button>
     </div>
 
-    <div id="display">----</div>
+    <div id="display">--편성 -호차</div>
+
     <div class="keypad" id="keypad">
         <button class="key-btn" onclick="press(1)">1</button>
         <button class="key-btn" onclick="press(2)">2</button>
@@ -167,26 +159,17 @@
   </div>
 
   <script>
-    const steps = document.querySelectorAll('.main-step');
-    
-    const detailStepEl = document.getElementById('step-detail');
-    const detailTitle = document.getElementById('detail-title');
-    
+    const steps = document.querySelectorAll('.step');
     const btnContainer = document.getElementById('btnContainer');
     const sentenceBox = document.getElementById('sentenceBox');
     
-    // 요소 참조
     const step4Title = document.getElementById('step4-title');
     const stationWrapper = document.getElementById('stationWrapper');
     const stationList = document.getElementById('stationList');
     const scrollGuide = document.getElementById('scroll-guide');
-    
-    // 키패드 관련 요소
     const keypad = document.getElementById('keypad');
     const display = document.getElementById('display');
     const keypadGuide = document.getElementById('keypad-guide');
-    
-    // 폼 참조
     const hiddenContent = document.getElementById('hiddenContent');
     const finalForm = document.getElementById('finalForm');
 
@@ -194,12 +177,7 @@
     let inputNum = ""; 
 
     let report = {
-      place: '',
-      situation: '',
-      detailSituation: '',
-      line: '',
-      detail: '', 
-      isInside: true
+      place: '', situation: '', line: '', detail: '', isInside: true
     };
 
     const stationDB = {
@@ -207,44 +185,6 @@
       '2호선': ['장산','중동','해운대','동백','벡스코','센텀시티','민락','수영','광안','금련산','남천','경성대부경대','대연','못골','지게골','문현','국제금융센터','전포','서면','부암','가야','동의대','개금','냉정','주례','감전','사상','덕포','모덕','모라','구남','구명','덕천','수정','화명','율리','동원','금곡','호포','증산','부산대양산','남양산','양산'],
       '3호선': ['수영','망미','배산','물만골','연산','거제','종합운동장','사직','미남','만덕','남산정','숙등','덕천','구포','강서구청','체육공원','대저'],
       '4호선': ['미남','동래','수안','낙민','충렬사','명장','서동','금사','반여농산물','석대','영산대','윗반송','고촌','안평']
-    };
-
-    // -----------------------------------------------------
-    // [설정] 세부 분기가 필요한 항목 정의
-    // -----------------------------------------------------
-    const detailOptions =
-    {
-        '온도 조절이 필요해요':
-        [
-            { text: '더워요', val: '더워요' },
-            { text: '추워요', val: '추워요' }
-        ],
-        '소란을 피워요':
-        [
-            { text: '구걸을 해요', val: '구걸을 해요' },
-            { text: '종교 권유를 해요', val: '종교 권유를 해요' },
-            { text: '전단지를 돌려요', val: '전단지를 돌려요' },
-            { text: '욕설을 해요', val: '욕설을 해요' },
-            { text: '시끄럽게 떠들어요', val: '시끄럽게 떠들어요' },
-            { text: '음식을 먹고 있어요', val: '음식을 먹고 있어요' },
-        ],
-        '청소가 필요해요':
-        [
-            { text: '광고지가 붙어있어요', val: '의자 파손' },
-            { text: '의자 시트가 더러워요', val: '출입문 고장' },
-            { text: '바닥에 쓰레기가 많아요', val: '유리창 파손' },
-            { text: '바닥에 액체가 흘렀어요', val: '손잡이 파손' },
-            { text: '벽이 더러워요', val: '조명 고장' },
-            { text: '손잡이가 더러워요', val: '손잡이 파손' },
-        ],
-        '시설물이 파손됐어요':
-        [
-            { text: '의자가 부서짐', val: '의자 파손' },
-            { text: '출입문 고장', val: '출입문 고장' },
-            { text: '유리창 깨짐', val: '유리창 파손' },
-            { text: '손잡이 파손', val: '손잡이 파손' },
-            { text: '조명/전광판 고장', val: '조명 고장' }
-        ],
     };
 
     function openHelp() { document.getElementById("help-modal").style.display = "flex"; }
@@ -257,34 +197,44 @@
         finalForm.submit();
     }
 
+    // [화면 업데이트]
+    function updateDisplay() {
+        const d = document.getElementById("display");
+        const len = inputNum.length;
+
+        if (len === 0) {
+            d.innerText = "--편성 -호차";
+        } else if (len === 1) {
+            d.innerText = inputNum; 
+        } else if (len === 2) {
+            // 13 -> 1편성 3호차
+            d.innerText = inputNum[0] + "편성 " + inputNum[1] + "호차";
+        } else if (len === 3) {
+            // 347 -> 34편성 7호차 (앞2자리: 편성, 뒤1자리: 호차)
+            d.innerText = inputNum.substring(0, 2) + "편성 " + inputNum[2] + "호차";
+        }
+    }
+
+    // [입력 함수: 최대 3글자 제한]
     function press(n) {
-        if(inputNum.length < 4) {
+        if(inputNum.length < 3) { // 3글자까지만 입력 가능 (4글자 입력 불가)
             inputNum += n;
-            document.getElementById("display").innerText = inputNum;
+            updateDisplay(); 
         }
     }
 
     function clearInput() {
         inputNum = "";
-        document.getElementById("display").innerText = "----";
+        updateDisplay(); 
     }
 
+    // [전송 체크: 2자리 또는 3자리만 허용]
     function checkAndSend() {
-        if (inputNum.length === 4) {
-            const firstChar = inputNum.charAt(0);
-            if(['1','2','3','4'].includes(firstChar)) {
-                report.line = firstChar + '호선';
-            }
-            const carOrder = inputNum.charAt(1);
-            const trainSet = inputNum.substring(2, 4);
-            report.detail = trainSet + '편성 ' + carOrder + '호차';
-            submitFinal(); 
-        } 
-        // [수정됨] 2자리 또는 3자리일 때 모달 띄우기
-        else if (inputNum.length === 3 || inputNum.length === 2) {
+        if (inputNum.length === 2 || inputNum.length === 3) {
+            // 1자리 또는 4자리는 press()에서 막혔거나 여기서 걸러짐
             document.getElementById("line-modal").style.display = "flex";
         } else {
-            alert("차량 번호를 입력해주세요 (2~4자리).");
+            alert("차량 번호 2자리 또는 3자리를 입력해주세요.");
         }
     }
 
@@ -296,17 +246,16 @@
         closeModal();
         report.line = line + '호선';
 
-        // [수정됨] 2자리 입력 시 (예: 13 -> 1편성 3호차)
+        // 2자리 입력 시 (예: 13 -> 1편성 3호차)
         if (inputNum.length === 2) {
-            const trainSet = inputNum.charAt(0); // 앞자리: 편성
-            const carOrder = inputNum.charAt(1); // 뒷자리: 호차
+            const trainSet = inputNum.charAt(0); 
+            const carOrder = inputNum.charAt(1); 
             report.detail = trainSet + '편성 ' + carOrder + '호차';
         } 
-        // 3자리 입력 시 (기존 로직: 347 + Line 2 -> 2347 -> 47편성 3호차)
+        // 3자리 입력 시 (예: 347 -> 34편성 7호차)
         else {
-            let fixedNum = line + inputNum;
-            const carOrder = fixedNum.charAt(1);
-            const trainSet = fixedNum.substring(2, 4);
+            const trainSet = inputNum.substring(0, 2); // 앞 2자리
+            const carOrder = inputNum.charAt(2);       // 뒤 1자리
             report.detail = trainSet + '편성 ' + carOrder + '호차';
         }
         
@@ -316,64 +265,17 @@
     // -----------------------------------------------------
     // 메인 스텝 로직
     // -----------------------------------------------------
-
-    // 2단계 버튼 클릭 시 처리하는 함수 (분기 판단)
-    function handleSituationStep(situationText) 
-    {
-        report.situation = situationText;
-        report.detailSituation = '';
-
-        if (detailOptions[situationText]) 
-        {
-            showDetailStep(situationText);
-        }
-        else 
-        {
-            nextStep(null, null); 
-        }
-    }
-
-    // 2.5단계 (세부 분기) 화면 표시
-    function showDetailStep(situationText) 
-    {
-        updateSentenceBox();
-        
-        steps[currentStep - 1].classList.remove('active');
-        
-        detailStepEl.classList.add('active');
-        detailTitle.innerText = `"${situationText}"\n구체적으로 어떤가요?`;
-
-        btnContainer.innerHTML = '';
-        const options = detailOptions[situationText];
-        
-        options.forEach(opt => {
-            const b = document.createElement('button');
-            b.className = 'nav-btn';
-            b.innerText = opt.text;
-            b.onclick = () => 
-            {
-                report.detailSituation = opt.val;
-                
-                detailStepEl.classList.remove('active');
-                nextStep(null, null);
-            };
-            btnContainer.appendChild(b);
-        });
-    }
-
     const stepButtons = {
       1: [
         { text: '지하철 안이에요', action: () => { report.isInside = true; nextStep('place', '지하철 안인데'); } },
         { text: '지하철 밖이에요', action: () => { report.isInside = false; nextStep('place', '지하철 밖인데'); } }
       ],
       2: [
-        { text: '잡상인이 있어요', action: () => handleSituationStep('잡상인이 있어요') },
-        { text: '싸움이 일어났어요', action: () => handleSituationStep('싸움이 일어났어요') },
-        { text: '온도 조절이 필요해요', action: () => handleSituationStep('온도 조절이 필요해요') },
-        { text: '소란을 피워요', action: () => handleSituationStep('소란을 피워요') },
-        { text: '청소가 필요해요', action: () => handleSituationStep('청소가 필요해요') },
-        { text: '시설물이 파손됐어요', action: () => handleSituationStep('시설물이 파손됐어요') },
-        { text: '직접 입력', action: () => handleSituationStep('직접 입력') }
+        { text: '잡상인이 있어요', action: () => nextStep('situation', '잡상인이 있어요') },
+        { text: '싸움이 일어났어요', action: () => nextStep('situation', '싸움이 일어났어요') },
+        { text: '에어컨이 추워요', action: () => nextStep('situation', '에어컨이 추워요') },
+        { text: '지저분해요', action: () => nextStep('situation', '지저분해요') },
+        { text: '시설물이 파손됐어요', action: () => nextStep('situation', '시설물이 파손됐어요') }
       ],
       3: [
         { text: '1호선', action: () => nextStep('line', '1호선') },
@@ -413,20 +315,10 @@
 
     function makeSentence() {
       let sentence = '';
-      if (report.place)
-        sentence += report.place + ' ';
-      if (report.situation)
-      {
-          sentence += report.situation;
-          if (report.detailSituation) {
-              sentence += `(${report.detailSituation})`;
-          }
-          sentence += ' ';
-      }
-      if (report.line)
-        sentence += '지금 ' + report.line + ' ';
-      if (report.detail)
-        sentence += report.detail;
+      if (report.place) sentence += report.place + ' ';
+      if (report.situation) sentence += report.situation + ' ';
+      if (report.line) sentence += '지금 ' + report.line + ' ';
+      if (report.detail) sentence += report.detail;
       return sentence.trim();
     }
 
