@@ -7,7 +7,7 @@
 
   <style>
     /* --------------------------------------------------- */
-    /* 기존 스타일 유지 */
+    /* 기본 스타일 */
     /* --------------------------------------------------- */
     body { margin: 0; background: #f8f9fb; font-family: "Pretendard", sans-serif; color: #222; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; overflow: hidden; }
     .sentence-box { background: #ffffff; margin: 12px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 20px; font-size: 1.1rem; text-align: center; color: #1e3a8a; min-height: 80px; line-height: 1.4; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
@@ -49,14 +49,14 @@
     .station-chip { background: white; border: 1px solid #ddd; border-radius: 20px; padding: 10px 20px; white-space: nowrap; color: #555; font-size: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
     .station-chip.selected { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 4px 8px rgba(59,130,246,0.3); transform: translateY(-2px); font-weight: bold; }
     
-    /* 호선 선택 모달 (기존) */
+    /* 호선 선택 모달 */
     #line-modal {
         display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.8); z-index: 999;
         flex-direction: column; justify-content: center; align-items: center;
     }
-    
-    /* [추가] 도움말(사진) 모달 스타일 */
+
+    /* 도움말(사진) 모달 */
     #help-modal {
         display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0,0,0,0.85); z-index: 1000;
@@ -109,7 +109,7 @@
     <h2 id="step4-title">몇 칸에 계신가요?</h2>
     
     <div class="guide" id="keypad-guide" style="display:none; font-size: 14px; color: #666; margin-bottom: 15px;">
-        보이는 숫자 3~4자리를 입력하세요.<br>
+        보이는 숫자 2~4자리를 입력하세요.<br>
         <button class="help-btn-open" onclick="openHelp()">📷 번호가 어디 있나요?</button>
     </div>
 
@@ -146,7 +146,7 @@
   <div id="help-modal">
     <div class="help-content">
         <h3>👀 차량 번호 확인 위치</h3>
-        <img src="train_guide.jpg" alt="차량번호 예시">
+        <img src="train_guide.png" alt="차량번호 예시">
         <p style="font-size:14px; color:#555; margin-bottom:20px;">
             출입문 위 또는 통로문 상단에<br>적힌 번호를 입력해주세요.
         </p>
@@ -247,17 +247,9 @@
         ],
     };
 
-    // [추가] 도움말 모달 열기/닫기 함수
-    function openHelp() {
-        document.getElementById("help-modal").style.display = "flex";
-    }
-    function closeHelp() {
-        document.getElementById("help-modal").style.display = "none";
-    }
+    function openHelp() { document.getElementById("help-modal").style.display = "flex"; }
+    function closeHelp() { document.getElementById("help-modal").style.display = "none"; }
 
-    // -----------------------------------------------------
-    // 즉시 전송 함수
-    // -----------------------------------------------------
     function submitFinal() {
         updateSentenceBox();
         hiddenContent.value = makeSentence();
@@ -265,9 +257,6 @@
         finalForm.submit();
     }
 
-    // -----------------------------------------------------
-    // 키패드 로직
-    // -----------------------------------------------------
     function press(n) {
         if(inputNum.length < 4) {
             inputNum += n;
@@ -289,12 +278,13 @@
             const carOrder = inputNum.charAt(1);
             const trainSet = inputNum.substring(2, 4);
             report.detail = trainSet + '편성 ' + carOrder + '호차';
-
             submitFinal(); 
-        } else if (inputNum.length === 3) {
+        } 
+        // [수정됨] 2자리 또는 3자리일 때 모달 띄우기
+        else if (inputNum.length === 3 || inputNum.length === 2) {
             document.getElementById("line-modal").style.display = "flex";
         } else {
-            alert("숫자 3자리 또는 4자리를 입력해주세요.");
+            alert("차량 번호를 입력해주세요 (2~4자리).");
         }
     }
 
@@ -304,12 +294,21 @@
 
     function selectLine(line) {
         closeModal();
-        let fixedNum = line + inputNum;
         report.line = line + '호선';
-        const carOrder = fixedNum.charAt(1);
-        const trainSet = fixedNum.substring(2, 4);
-        report.detail = trainSet + '편성 ' + carOrder + '호차';
-        document.getElementById("display").innerText = fixedNum;
+
+        // [수정됨] 2자리 입력 시 (예: 13 -> 1편성 3호차)
+        if (inputNum.length === 2) {
+            const trainSet = inputNum.charAt(0); // 앞자리: 편성
+            const carOrder = inputNum.charAt(1); // 뒷자리: 호차
+            report.detail = trainSet + '편성 ' + carOrder + '호차';
+        } 
+        // 3자리 입력 시 (기존 로직: 347 + Line 2 -> 2347 -> 47편성 3호차)
+        else {
+            let fixedNum = line + inputNum;
+            const carOrder = fixedNum.charAt(1);
+            const trainSet = fixedNum.substring(2, 4);
+            report.detail = trainSet + '편성 ' + carOrder + '호차';
+        }
         
         submitFinal();
     }
