@@ -89,19 +89,23 @@
     🚇 신고 문장이 여기에 만들어집니다.
   </div>
 
-  <div class="step active fadeIn" id="step1">
+  <div class="step main-step active fadeIn" id="step1">
     <h2>어디 계신가요?</h2>
   </div>
 
-  <div class="step" id="step2">
+  <div class="step" id="step-detail">
+    <h2 id="detail-title">더 자세한 내용을 알려주세요</h2>
+  </div>
+
+  <div class="step main-step" id="step2">
     <h2>어떤 상황인가요?</h2>
   </div>
 
-  <div class="step" id="step3">
+  <div class="step main-step" id="step3">
     <h2>몇 호선인가요?</h2>
   </div>
 
-  <div class="step" id="step4">
+  <div class="step main-step" id="step4">
     <h2 id="step4-title">몇 칸에 계신가요?</h2>
     
     <div class="guide" id="keypad-guide" style="display:none; font-size: 14px; color: #666; margin-bottom: 15px;">
@@ -163,7 +167,11 @@
   </div>
 
   <script>
-    const steps = document.querySelectorAll('.step');
+    const steps = document.querySelectorAll('.main-step');
+    
+    const detailStepEl = document.getElementById('step-detail');
+    const detailTitle = document.getElementById('detail-title');
+    
     const btnContainer = document.getElementById('btnContainer');
     const sentenceBox = document.getElementById('sentenceBox');
     
@@ -188,6 +196,7 @@
     let report = {
       place: '',
       situation: '',
+      detailSituation: '',
       line: '',
       detail: '', 
       isInside: true
@@ -198,6 +207,44 @@
       '2호선': ['장산','중동','해운대','동백','벡스코','센텀시티','민락','수영','광안','금련산','남천','경성대부경대','대연','못골','지게골','문현','국제금융센터','전포','서면','부암','가야','동의대','개금','냉정','주례','감전','사상','덕포','모덕','모라','구남','구명','덕천','수정','화명','율리','동원','금곡','호포','증산','부산대양산','남양산','양산'],
       '3호선': ['수영','망미','배산','물만골','연산','거제','종합운동장','사직','미남','만덕','남산정','숙등','덕천','구포','강서구청','체육공원','대저'],
       '4호선': ['미남','동래','수안','낙민','충렬사','명장','서동','금사','반여농산물','석대','영산대','윗반송','고촌','안평']
+    };
+
+    // -----------------------------------------------------
+    // [설정] 세부 분기가 필요한 항목 정의
+    // -----------------------------------------------------
+    const detailOptions =
+    {
+        '온도 조절이 필요해요':
+        [
+            { text: '더워요', val: '더워요' },
+            { text: '추워요', val: '추워요' }
+        ],
+        '소란을 피워요':
+        [
+            { text: '구걸을 해요', val: '구걸을 해요' },
+            { text: '종교 권유를 해요', val: '종교 권유를 해요' },
+            { text: '전단지를 돌려요', val: '전단지를 돌려요' },
+            { text: '욕설을 해요', val: '욕설을 해요' },
+            { text: '시끄럽게 떠들어요', val: '시끄럽게 떠들어요' },
+            { text: '음식을 먹고 있어요', val: '음식을 먹고 있어요' },
+        ],
+        '청소가 필요해요':
+        [
+            { text: '광고지가 붙어있어요', val: '의자 파손' },
+            { text: '의자 시트가 더러워요', val: '출입문 고장' },
+            { text: '바닥에 쓰레기가 많아요', val: '유리창 파손' },
+            { text: '바닥에 액체가 흘렀어요', val: '손잡이 파손' },
+            { text: '벽이 더러워요', val: '조명 고장' },
+            { text: '손잡이가 더러워요', val: '손잡이 파손' },
+        ],
+        '시설물이 파손됐어요':
+        [
+            { text: '의자가 부서짐', val: '의자 파손' },
+            { text: '출입문 고장', val: '출입문 고장' },
+            { text: '유리창 깨짐', val: '유리창 파손' },
+            { text: '손잡이 파손', val: '손잡이 파손' },
+            { text: '조명/전광판 고장', val: '조명 고장' }
+        ],
     };
 
     // [추가] 도움말 모달 열기/닫기 함수
@@ -271,17 +318,63 @@
     // 메인 스텝 로직
     // -----------------------------------------------------
 
+    // 2단계 버튼 클릭 시 처리하는 함수 (분기 판단)
+    function handleSituationStep(situationText) 
+    {
+        report.situation = situationText;
+        report.detailSituation = '';
+
+        if (detailOptions[situationText]) 
+        {
+            showDetailStep(situationText);
+        }
+        else 
+        {
+            nextStep(null, null); 
+        }
+    }
+
+    // 2.5단계 (세부 분기) 화면 표시
+    function showDetailStep(situationText) 
+    {
+        updateSentenceBox();
+        
+        steps[currentStep - 1].classList.remove('active');
+        
+        detailStepEl.classList.add('active');
+        detailTitle.innerText = `"${situationText}"\n구체적으로 어떤가요?`;
+
+        btnContainer.innerHTML = '';
+        const options = detailOptions[situationText];
+        
+        options.forEach(opt => {
+            const b = document.createElement('button');
+            b.className = 'nav-btn';
+            b.innerText = opt.text;
+            b.onclick = () => 
+            {
+                report.detailSituation = opt.val;
+                
+                detailStepEl.classList.remove('active');
+                nextStep(null, null);
+            };
+            btnContainer.appendChild(b);
+        });
+    }
+
     const stepButtons = {
       1: [
         { text: '지하철 안이에요', action: () => { report.isInside = true; nextStep('place', '지하철 안인데'); } },
         { text: '지하철 밖이에요', action: () => { report.isInside = false; nextStep('place', '지하철 밖인데'); } }
       ],
       2: [
-        { text: '잡상인이 있어요', action: () => nextStep('situation', '잡상인이 있어요') },
-        { text: '싸움이 일어났어요', action: () => nextStep('situation', '싸움이 일어났어요') },
-        { text: '에어컨이 추워요', action: () => nextStep('situation', '에어컨이 추워요') },
-        { text: '지저분해요', action: () => nextStep('situation', '지저분해요') },
-        { text: '시설물이 파손됐어요', action: () => nextStep('situation', '시설물이 파손됐어요') }
+        { text: '잡상인이 있어요', action: () => handleSituationStep('잡상인이 있어요') },
+        { text: '싸움이 일어났어요', action: () => handleSituationStep('싸움이 일어났어요') },
+        { text: '온도 조절이 필요해요', action: () => handleSituationStep('온도 조절이 필요해요') },
+        { text: '소란을 피워요', action: () => handleSituationStep('소란을 피워요') },
+        { text: '청소가 필요해요', action: () => handleSituationStep('청소가 필요해요') },
+        { text: '시설물이 파손됐어요', action: () => handleSituationStep('시설물이 파손됐어요') },
+        { text: '직접 입력', action: () => handleSituationStep('직접 입력') }
       ],
       3: [
         { text: '1호선', action: () => nextStep('line', '1호선') },
@@ -321,10 +414,20 @@
 
     function makeSentence() {
       let sentence = '';
-      if (report.place) sentence += report.place + ' ';
-      if (report.situation) sentence += report.situation + ' ';
-      if (report.line) sentence += '지금 ' + report.line + ' ';
-      if (report.detail) sentence += report.detail;
+      if (report.place)
+        sentence += report.place + ' ';
+      if (report.situation)
+      {
+          sentence += report.situation;
+          if (report.detailSituation) {
+              sentence += `(${report.detailSituation})`;
+          }
+          sentence += ' ';
+      }
+      if (report.line)
+        sentence += '지금 ' + report.line + ' ';
+      if (report.detail)
+        sentence += report.detail;
       return sentence.trim();
     }
 
