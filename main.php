@@ -59,14 +59,25 @@
     #help-modal { background: rgba(0,0,0,0.85); z-index: 1000; }
 
     .help-content {
-        background: white; padding: 20px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center;
+        background: white; padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center;
         position: relative;
     }
-    .help-content img { width: 100%; border-radius: 8px; margin-bottom: 15px; border: 2px solid #eee; }
+    .help-content img { width: 100%; border-radius: 8px; margin-bottom: 20px; border: 2px solid #eee; }
+    
+    /* [수정] 도움말 텍스트 스타일 강화 */
+    .help-text {
+        font-size: 1.4rem; /* 글자 크기 키움 (약 22px) */
+        color: #111;       /* 거의 검정색으로 진하게 */
+        font-weight: bold; /* 굵게 */
+        line-height: 1.5;  /* 줄 간격 넓게 */
+        margin-bottom: 25px;
+        word-break: keep-all; /* 단어 단위 줄바꿈 */
+    }
+
     .help-btn-open {
         background: none; border: none; color: #3b82f6; 
-        font-size: 0.9rem; font-weight: bold; cursor: pointer; 
-        text-decoration: underline; margin-top: 5px;
+        font-size: 0.95rem; font-weight: bold; cursor: pointer; 
+        text-decoration: underline; margin-top: 8px;
     }
 
     .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 350px; text-align: center; }
@@ -100,7 +111,7 @@
     
     <div class="guide" id="keypad-guide" style="display:none; font-size: 14px; color: #666; margin-bottom: 15px;">
         보이는 숫자 2~3자리를 입력하세요.<br>
-        <strong style="color:#e03131;">3글자 입력시에는 전체입력 부탁드립니다.</strong><br>
+        <strong style="color:#e03131;">3글자시에는 전체입력 부탁드립니다.</strong><br>
         <button class="help-btn-open" onclick="openHelp()">📷 번호가 어디 있나요?</button>
     </div>
 
@@ -137,12 +148,13 @@
 
   <div id="help-modal">
     <div class="help-content">
-        <h3>👀 차량 번호 확인 위치</h3>
-        <img src="train_guide.png" alt="차량번호 예시">
-        <p style="font-size:14px; color:#555; margin-bottom:20px;">
-            출입문 위 또는 통로문 상단에<br>적힌 번호를 입력해주세요.
+        <img src="train_guide.jpg" alt="차량번호 예시">
+        
+        <p class="help-text">
+            출입문 위 또는<br>통로문 상단에 적힌<br>번호를 입력해주세요.
         </p>
-        <button onclick="closeHelp()" style="width:100%; padding:12px; background:#3b82f6; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">확인했습니다</button>
+        
+        <button onclick="closeHelp()" style="width:100%; padding:15px; background:#3b82f6; color:white; border:none; border-radius:10px; font-size:1.1rem; font-weight:bold; cursor:pointer;">확인했습니다</button>
     </div>
   </div>
 
@@ -217,7 +229,7 @@
 
     // [입력 함수: 최대 3글자 제한]
     function press(n) {
-        if(inputNum.length < 3) { // 3글자까지만 입력 가능 (4글자 입력 불가)
+        if(inputNum.length < 3) { // 3글자까지만 입력 가능
             inputNum += n;
             updateDisplay(); 
         }
@@ -231,7 +243,6 @@
     // [전송 체크: 2자리 또는 3자리만 허용]
     function checkAndSend() {
         if (inputNum.length === 2 || inputNum.length === 3) {
-            // 1자리 또는 4자리는 press()에서 막혔거나 여기서 걸러짐
             document.getElementById("line-modal").style.display = "flex";
         } else {
             alert("차량 번호 2자리 또는 3자리를 입력해주세요.");
