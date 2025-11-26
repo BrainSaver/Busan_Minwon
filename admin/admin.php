@@ -19,6 +19,45 @@ try {
 }
 ?>
 
+<script>
+    let lastStatus = ""; // 마지막 DB 상태를 저장할 변수
+
+    // 페이지 로딩되자마자 현재 상태를 한 번 저장해둠 (기준점)
+    getStatus().then(status => { lastStatus = status; });
+
+    // 3초마다 실행되는 루프
+    setInterval(async function() {
+        try {
+            // 1. 백그라운드에서 문자 매칭 프로그램 실행 (은밀하게)
+            await fetch('admin_check_sms.php');
+
+            // 2. 감시자에게 현재 DB 상태 물어보기
+            const currentStatus = await getStatus();
+
+            // 3. 상태가 달라졌다면? (새 신고가 왔거나, 번호가 매칭됐다면)
+            if (lastStatus !== "" && currentStatus !== lastStatus && currentStatus !== "error") {
+                // 알림 한 번 띄우고 (선택사항)
+                // alert("🔔 새로운 변동사항이 있어 새로고침합니다."); 
+                
+                // 페이지 새로고침!
+                location.reload();
+            }
+        } catch (error) {
+            console.error("통신 에러:", error);
+        }
+    }, 3000); // 3초 간격
+
+    // 상태 확인용 도우미 함수
+    async function getStatus() {
+        try {
+            const response = await fetch('check_status.php');
+            return await response.text();
+        } catch (e) {
+            return "error";
+        }
+    }
+</script>
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -47,6 +86,11 @@ try {
             border-radius: 4px; cursor: pointer; font-size: 0.9rem;
         }
         .btn-process:hover { background-color: #0a58ca; }
+        .btn-reopen {
+            background-color: #dc3545; color: white; border: none; padding: 6px 12px;
+            border-radius: 4px; cursor: pointer; font-size: 0.9rem;
+        }
+        .btn-reopen:hover { background-color: #c82333; }
         .empty-msg { text-align: center; padding: 30px; color: #666; }
     </style>
 </head>
@@ -54,7 +98,23 @@ try {
 
 <div class="container">
     <h2>👮‍♂️ 민원 신고 관리자 현황</h2>
-    
+    <div style="margin-bottom: 15px; text-align: right;">
+        <a href="admin_check_sms.php" style="text-decoration:none;">
+            <button style="
+                background-color: #4c6ef5; 
+                color: white; 
+                padding: 10px 20px; 
+                border: none; 
+                border-radius: 5px; 
+                font-size: 1rem; 
+                font-weight: bold; 
+                cursor: pointer;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            ">
+                🔄 문자 수신함 확인 & DB 매칭하기
+            </button>
+        </a>
+    </div>
     <table>
         <thead>
             <tr>
@@ -83,15 +143,21 @@ try {
                     </td>
                     <td>
                         <?php if ($row['status'] == '접수대기'): ?>
-                        <form action="admin_update.php" method="POST">
+                        <form action="admin_update.php" method="POST" style="display:inline;">
                             <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
                             <input type="hidden" name="new_status" value="처리완료">
                             <button type="submit" class="btn-process" onclick="return confirm('처리완료 상태로 변경하시겠습니까?')">
                                 처리 완료하기
                             </button>
                         </form>
-                        <?php else: ?>
-                            <span style="color:#888; font-size:0.9rem;">처리됨</span>
+                        <?php else: /* 처리완료인 경우 다시 접수 대기로 되돌리는 버튼 추가 */ ?>
+                        <form action="admin_update.php" method="POST" style="display:inline;">
+                            <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                            <input type="hidden" name="new_status" value="접수대기">
+                            <button type="submit" class="btn-reopen" onclick="return confirm('다시 접수 대기로 되돌리시겠습니까?')">
+                                다시 접수하기
+                            </button>
+                        </form>
                         <?php endif; ?>
                     </td>
                 </tr>

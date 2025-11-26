@@ -1,3 +1,17 @@
+<?php
+// main.php 맨 윗줄에 추가하세요
+$imap_env_path = __DIR__ . '/imap.env';
+$myEmail = 'busanminwon@gmail.com'; // 기본값
+
+if (file_exists($imap_env_path)) {
+    $content = file_get_contents($imap_env_path);
+    // (간단하게 이메일만 추출하는 로직)
+    if (preg_match('/GMAIL_ID\s*=\s*["\']?([^"\']+)["\']?/', $content, $matches)) {
+        $myEmail = $matches[1];
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -242,11 +256,56 @@
     function openHelp() { document.getElementById("help-modal").style.display = "flex"; }
     function closeHelp() { document.getElementById("help-modal").style.display = "none"; }
 
-    function submitFinal() {
+// [수정됨] 에러 원인을 알려주는 버전
+    async function submitFinal() {
         updateSentenceBox();
-        hiddenContent.value = makeSentence();
-        alert("🚨 신고가 즉시 전송됩니다:\n" + hiddenContent.value);
-        finalForm.submit();
+        const finalSentence = makeSentence();
+        
+        // imap.env에서 가져올 이메일 (PHP에서 주입 필요)
+        const targetEmail = "<?= isset($myEmail) ? $myEmail : 'busanminwon@gmail.com' ?>"; 
+
+        if(!confirm("신고 내용을 전송하시겠습니까?")) return;
+
+        let token = "";
+        
+        try {
+            // 1. DB 저장 요청
+            const response = await fetch('save_report.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: finalSentence })
+            });
+            
+            // 응답이 JSON이 아닐 경우(PHP 에러 등)를 대비
+            const text = await response.text(); 
+            try {
+                const result = JSON.parse(text);
+                
+                if (result.success) {
+                    token = result.token;
+                    // console.log("토큰 발급 성공:", token); // 테스트용
+                } else {
+                    alert("⚠️ 서버 저장 실패: " + result.message);
+                }
+            } catch (e) {
+                alert("⚠️ 서버 오류(PHP 에러): " + text); // PHP 문법 에러 등이 나면 여기서 뜸
+            }
+
+        } catch (error) {
+            alert("⚠️ 네트워크 오류: " + error);
+        }
+
+        // 2. 문자 전송 (토큰이 없어도 일단 창은 띄움)
+        let msg = finalSentence;
+        if(token) {
+            msg += "\n\n[접수코드:" + token + "]"; 
+        } else {
+            msg += "\n\n(서버 저장 실패로 접수코드 없음)";
+        }
+
+        const encodedBody = encodeURIComponent(msg);
+        const separator = navigator.userAgent.match(/iPhone/i) ? "&" : "?";
+        location.href = "sms:" + targetEmail + separator + "body=" + encodedBody;
     }
 
     // [중요] 화면 업데이트 (입력값에 따라 텍스트 변경)
