@@ -20,7 +20,7 @@
     button.nav-btn:active { transform: scale(0.96); background: #2563eb; }
     
     /* --------------------------------------------------- */
-    /* 입력 UI 스타일 */
+    /* 입력 UI 스타일 (업그레이드됨) */
     /* --------------------------------------------------- */
     #display { 
         font-size: 32px; 
@@ -64,14 +64,14 @@
     }
     .help-content img { width: 100%; border-radius: 8px; margin-bottom: 20px; border: 2px solid #eee; }
     
-    /* [수정] 도움말 텍스트 스타일 강화 */
+    /* 도움말 텍스트 스타일 강화 */
     .help-text {
-        font-size: 1.4rem; /* 글자 크기 키움 (약 22px) */
-        color: #111;       /* 거의 검정색으로 진하게 */
+        font-size: 1.4rem; /* 글자 크기 키움 */
+        color: #111;       /* 진한 검정 */
         font-weight: bold; /* 굵게 */
-        line-height: 1.5;  /* 줄 간격 넓게 */
+        line-height: 1.5;  /* 줄 간격 */
         margin-bottom: 25px;
-        word-break: keep-all; /* 단어 단위 줄바꿈 */
+        word-break: keep-all; 
     }
 
     .help-btn-open {
@@ -94,19 +94,23 @@
     🚇 신고 문장이 여기에 만들어집니다.
   </div>
 
-  <div class="step active fadeIn" id="step1">
+  <div class="step main-step active fadeIn" id="step1">
     <h2>어디 계신가요?</h2>
   </div>
 
-  <div class="step" id="step2">
+  <div class="step" id="step-detail">
+    <h2 id="detail-title">더 자세한 내용을 알려주세요</h2>
+  </div>
+
+  <div class="step main-step" id="step2">
     <h2>어떤 상황인가요?</h2>
   </div>
 
-  <div class="step" id="step3">
+  <div class="step main-step" id="step3">
     <h2>몇 호선인가요?</h2>
   </div>
 
-  <div class="step" id="step4">
+  <div class="step main-step" id="step4">
     <h2 id="step4-title">몇 칸에 계신가요?</h2>
     
     <div class="guide" id="keypad-guide" style="display:none; font-size: 14px; color: #666; margin-bottom: 15px;">
@@ -149,11 +153,9 @@
   <div id="help-modal">
     <div class="help-content">
         <img src="train_guide.jpg" alt="차량번호 예시">
-        
         <p class="help-text">
             출입문 위 또는<br>통로문 상단에 적힌<br>번호를 입력해주세요.
         </p>
-        
         <button onclick="closeHelp()" style="width:100%; padding:15px; background:#3b82f6; color:white; border:none; border-radius:10px; font-size:1.1rem; font-weight:bold; cursor:pointer;">확인했습니다</button>
     </div>
   </div>
@@ -171,7 +173,11 @@
   </div>
 
   <script>
-    const steps = document.querySelectorAll('.step');
+    const steps = document.querySelectorAll('.main-step');
+    
+    const detailStepEl = document.getElementById('step-detail');
+    const detailTitle = document.getElementById('detail-title');
+    
     const btnContainer = document.getElementById('btnContainer');
     const sentenceBox = document.getElementById('sentenceBox');
     
@@ -179,9 +185,11 @@
     const stationWrapper = document.getElementById('stationWrapper');
     const stationList = document.getElementById('stationList');
     const scrollGuide = document.getElementById('scroll-guide');
+    
     const keypad = document.getElementById('keypad');
     const display = document.getElementById('display');
     const keypadGuide = document.getElementById('keypad-guide');
+    
     const hiddenContent = document.getElementById('hiddenContent');
     const finalForm = document.getElementById('finalForm');
 
@@ -189,7 +197,12 @@
     let inputNum = ""; 
 
     let report = {
-      place: '', situation: '', line: '', detail: '', isInside: true
+      place: '',
+      situation: '',
+      detailSituation: '',
+      line: '',
+      detail: '', 
+      isInside: true
     };
 
     const stationDB = {
@@ -197,6 +210,33 @@
       '2호선': ['장산','중동','해운대','동백','벡스코','센텀시티','민락','수영','광안','금련산','남천','경성대부경대','대연','못골','지게골','문현','국제금융센터','전포','서면','부암','가야','동의대','개금','냉정','주례','감전','사상','덕포','모덕','모라','구남','구명','덕천','수정','화명','율리','동원','금곡','호포','증산','부산대양산','남양산','양산'],
       '3호선': ['수영','망미','배산','물만골','연산','거제','종합운동장','사직','미남','만덕','남산정','숙등','덕천','구포','강서구청','체육공원','대저'],
       '4호선': ['미남','동래','수안','낙민','충렬사','명장','서동','금사','반여농산물','석대','영산대','윗반송','고촌','안평']
+    };
+
+    const detailOptions = {
+        '온도 조절이 필요해요': [ { text: '더워요', val: '더워요' }, { text: '추워요', val: '추워요' } ],
+        '소란을 피워요': [
+            { text: '구걸을 해요', val: '구걸을 해요' },
+            { text: '종교 권유를 해요', val: '종교 권유를 해요' },
+            { text: '전단지를 돌려요', val: '전단지를 돌려요' },
+            { text: '욕설을 해요', val: '욕설을 해요' },
+            { text: '시끄럽게 떠들어요', val: '시끄럽게 떠들어요' },
+            { text: '음식을 먹고 있어요', val: '음식을 먹고 있어요' },
+        ],
+        '청소가 필요해요': [
+            { text: '광고지가 붙어있어요', val: '의자 파손' },
+            { text: '의자 시트가 더러워요', val: '출입문 고장' },
+            { text: '바닥에 쓰레기가 많아요', val: '유리창 파손' },
+            { text: '바닥에 액체가 흘렀어요', val: '손잡이 파손' },
+            { text: '벽이 더러워요', val: '조명 고장' },
+            { text: '손잡이가 더러워요', val: '손잡이 파손' },
+        ],
+        '시설물이 파손됐어요': [
+            { text: '의자가 부서짐', val: '의자 파손' },
+            { text: '출입문 고장', val: '출입문 고장' },
+            { text: '유리창 깨짐', val: '유리창 파손' },
+            { text: '손잡이 파손', val: '손잡이 파손' },
+            { text: '조명/전광판 고장', val: '조명 고장' }
+        ],
     };
 
     function openHelp() { document.getElementById("help-modal").style.display = "flex"; }
@@ -209,7 +249,7 @@
         finalForm.submit();
     }
 
-    // [화면 업데이트]
+    // [중요] 화면 업데이트 (입력값에 따라 텍스트 변경)
     function updateDisplay() {
         const d = document.getElementById("display");
         const len = inputNum.length;
@@ -219,17 +259,15 @@
         } else if (len === 1) {
             d.innerText = inputNum; 
         } else if (len === 2) {
-            // 13 -> 1편성 3호차
             d.innerText = inputNum[0] + "편성 " + inputNum[1] + "호차";
         } else if (len === 3) {
-            // 347 -> 34편성 7호차 (앞2자리: 편성, 뒤1자리: 호차)
             d.innerText = inputNum.substring(0, 2) + "편성 " + inputNum[2] + "호차";
         }
     }
 
-    // [입력 함수: 최대 3글자 제한]
+    // [수정됨] 입력 함수: 최대 3글자 제한
     function press(n) {
-        if(inputNum.length < 3) { // 3글자까지만 입력 가능
+        if(inputNum.length < 3) { 
             inputNum += n;
             updateDisplay(); 
         }
@@ -240,7 +278,7 @@
         updateDisplay(); 
     }
 
-    // [전송 체크: 2자리 또는 3자리만 허용]
+    // [수정됨] 전송 체크: 2자리 또는 3자리만 허용
     function checkAndSend() {
         if (inputNum.length === 2 || inputNum.length === 3) {
             document.getElementById("line-modal").style.display = "flex";
@@ -265,8 +303,8 @@
         } 
         // 3자리 입력 시 (예: 347 -> 34편성 7호차)
         else {
-            const trainSet = inputNum.substring(0, 2); // 앞 2자리
-            const carOrder = inputNum.charAt(2);       // 뒤 1자리
+            const trainSet = inputNum.substring(0, 2); 
+            const carOrder = inputNum.charAt(2); 
             report.detail = trainSet + '편성 ' + carOrder + '호차';
         }
         
@@ -276,17 +314,53 @@
     // -----------------------------------------------------
     // 메인 스텝 로직
     // -----------------------------------------------------
+    function handleSituationStep(situationText) {
+        report.situation = situationText;
+        report.detailSituation = '';
+
+        if (detailOptions[situationText]) {
+            showDetailStep(situationText);
+        } else {
+            nextStep(null, null); 
+        }
+    }
+
+    function showDetailStep(situationText) {
+        updateSentenceBox();
+        steps[currentStep - 1].classList.remove('active');
+        
+        detailStepEl.classList.add('active');
+        detailTitle.innerText = `"${situationText}"\n구체적으로 어떤가요?`;
+
+        btnContainer.innerHTML = '';
+        const options = detailOptions[situationText];
+        
+        options.forEach(opt => {
+            const b = document.createElement('button');
+            b.className = 'nav-btn';
+            b.innerText = opt.text;
+            b.onclick = () => {
+                report.detailSituation = opt.val;
+                detailStepEl.classList.remove('active');
+                nextStep(null, null);
+            };
+            btnContainer.appendChild(b);
+        });
+    }
+
     const stepButtons = {
       1: [
         { text: '지하철 안이에요', action: () => { report.isInside = true; nextStep('place', '지하철 안인데'); } },
         { text: '지하철 밖이에요', action: () => { report.isInside = false; nextStep('place', '지하철 밖인데'); } }
       ],
       2: [
-        { text: '잡상인이 있어요', action: () => nextStep('situation', '잡상인이 있어요') },
-        { text: '싸움이 일어났어요', action: () => nextStep('situation', '싸움이 일어났어요') },
-        { text: '에어컨이 추워요', action: () => nextStep('situation', '에어컨이 추워요') },
-        { text: '지저분해요', action: () => nextStep('situation', '지저분해요') },
-        { text: '시설물이 파손됐어요', action: () => nextStep('situation', '시설물이 파손됐어요') }
+        { text: '잡상인이 있어요', action: () => handleSituationStep('잡상인이 있어요') },
+        { text: '싸움이 일어났어요', action: () => handleSituationStep('싸움이 일어났어요') },
+        { text: '온도 조절이 필요해요', action: () => handleSituationStep('온도 조절이 필요해요') },
+        { text: '소란을 피워요', action: () => handleSituationStep('소란을 피워요') },
+        { text: '청소가 필요해요', action: () => handleSituationStep('청소가 필요해요') },
+        { text: '시설물이 파손됐어요', action: () => handleSituationStep('시설물이 파손됐어요') },
+        { text: '직접 입력', action: () => handleSituationStep('직접 입력') }
       ],
       3: [
         { text: '1호선', action: () => nextStep('line', '1호선') },
@@ -327,7 +401,13 @@
     function makeSentence() {
       let sentence = '';
       if (report.place) sentence += report.place + ' ';
-      if (report.situation) sentence += report.situation + ' ';
+      if (report.situation) {
+          sentence += report.situation;
+          if (report.detailSituation) {
+              sentence += `(${report.detailSituation})`;
+          }
+          sentence += ' ';
+      }
       if (report.line) sentence += '지금 ' + report.line + ' ';
       if (report.detail) sentence += report.detail;
       return sentence.trim();
