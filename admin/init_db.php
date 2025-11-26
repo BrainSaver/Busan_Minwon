@@ -24,22 +24,10 @@ try {
         $pdo->exec("ALTER TABLE reports ADD COLUMN token VARCHAR(50) DEFAULT NULL AFTER status");
     } catch (Exception $e) { /* 컬럼이 이미 있으면 에러 무시 */ }
 
+    // 성공 메시지 출력
+    echo "데이터베이스 '{$db}' 생성 및 테이블 준비가 완료되었습니다.";
+
 } catch(PDOException $e) {
     die("DB 연결 실패: " . $e->getMessage());
-}
-?>
-
-
-<?php
-// fix_db.php
-require '../db_connect.php'; // 가지고 계신 파일명
-
-try {
-    // reports 테이블에 token 컬럼이 없으면 추가하는 명령어
-    $pdo->exec("ALTER TABLE reports ADD COLUMN token VARCHAR(50) DEFAULT NULL AFTER status");
-    echo "<h1>✅ 성공! DB에 'token' 칸을 추가했습니다.</h1>";
-} catch (PDOException $e) {
-    // 이미 있으면 에러가 날 수 있는데, 그건 괜찮음
-    echo "<h1>⚠️ 이미 칸이 있거나 에러가 났습니다: " . $e->getMessage() . "</h1>";
 }
 ?>
