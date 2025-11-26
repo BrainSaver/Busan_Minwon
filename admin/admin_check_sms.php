@@ -31,8 +31,6 @@ $emails = imap_search($inbox, 'ALL');
 echo "<h2>🕵️ 통신사 문자 포맷 분석기</h2>";
 echo "<p>메일함을 분석 중입니다... (최근 5건)</p><hr>";
 
-$deleted_any = false;
-
 if ($emails) {
     rsort($emails); // 최신순 정렬
 
@@ -98,25 +96,16 @@ if ($emails) {
             echo "<details><summary>본문 보기</summary><pre style='font-size:0.8em; color:#666;'>" . htmlspecialchars(substr($body, 0, 500)) . "...</pre></details>";
         }
 
-        // 메일 삭제 표시 (삭제 플래그 설정)
-        if (imap_delete($inbox, $email_number)) {
-            $deleted_any = true;
-            echo "<br>🗑️ 메일이 삭제 표시되었습니다.<br>";
+        // 메일을 삭제하지 않고 '읽음(Seen)' 플래그만 설정
+        if (imap_setflag_full($inbox, $email_number, "\\Seen")) {
+            echo "<br>📖 메일을 읽음(Seen)으로 표시했습니다.<br>";
         } else {
-            echo "<br>⚠️ 메일 삭제 표시 실패: " . htmlspecialchars(imap_last_error()) . "<br>";
+            echo "<br>⚠️ 읽음 표시 실패: " . htmlspecialchars(imap_last_error()) . "<br>";
         }
 
         echo "</div>";
     }
 
-    // 삭제 플래그가 설정된 메일들을 영구 삭제 (expunge)
-    if ($deleted_any) {
-        if (imap_expunge($inbox)) {
-            echo "<p>✅ 삭제 표시된 메일들을 영구 삭제했습니다.</p>";
-        } else {
-            echo "<p>⚠️ 메일 영구 삭제 실패: " . htmlspecialchars(imap_last_error()) . "</p>";
-        }
-    }
 } else {
     echo "메일함이 비어있거나 검색 결과가 없습니다.";
 }

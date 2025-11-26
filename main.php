@@ -1,17 +1,15 @@
 <?php
-// main.php 맨 윗줄에 추가하세요
-$imap_env_path = __DIR__ . '/imap.env';
+// main.php 맨 윗줄
+$imap_env_path = __DIR__ . '/admin/imap.env';
 $myEmail = 'busanminwon@gmail.com'; // 기본값
 
 if (file_exists($imap_env_path)) {
     $content = file_get_contents($imap_env_path);
-    // (간단하게 이메일만 추출하는 로직)
     if (preg_match('/GMAIL_ID\s*=\s*["\']?([^"\']+)["\']?/', $content, $matches)) {
         $myEmail = $matches[1];
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -20,9 +18,7 @@ if (file_exists($imap_env_path)) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <style>
-    /* --------------------------------------------------- */
     /* 기본 스타일 */
-    /* --------------------------------------------------- */
     body { margin: 0; background: #f8f9fb; font-family: "Pretendard", sans-serif; color: #222; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; overflow: hidden; }
     .sentence-box { background: #ffffff; margin: 12px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 20px; font-size: 1.1rem; text-align: center; color: #1e3a8a; min-height: 80px; line-height: 1.4; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
     .step { flex: 1; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; opacity: 0; transform: translateY(30px); transition: all 0.4s ease; width: 100%; box-sizing: border-box; }
@@ -33,9 +29,7 @@ if (file_exists($imap_env_path)) {
     button.nav-btn { flex: 1 1 45%; background: #3b82f6; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; transition: transform 0.2s ease, background 0.3s ease; cursor: pointer; }
     button.nav-btn:active { transform: scale(0.96); background: #2563eb; }
     
-    /* --------------------------------------------------- */
-    /* 입력 UI 스타일 (업그레이드됨) */
-    /* --------------------------------------------------- */
+    /* 입력 UI 스타일 */
     #display { 
         font-size: 32px; 
         height: 70px; line-height: 70px; width: 100%; max-width: 400px;
@@ -44,6 +38,15 @@ if (file_exists($imap_env_path)) {
         font-weight: bold; letter-spacing: 1px; color: #333;
         display: none; 
     }
+
+    /* 직접 입력 텍스트박스 스타일 */
+    #customInputArea {
+        width: 100%; max-width: 350px; display: none; flex-direction: column; gap: 10px;
+    }
+    #customInput {
+        padding: 15px; font-size: 16px; border: 2px solid #ddd; border-radius: 10px; width: 100%; box-sizing: border-box;
+    }
+    #customInput:focus { outline: none; border-color: #3b82f6; }
 
     .keypad { 
         display: none; 
@@ -77,17 +80,9 @@ if (file_exists($imap_env_path)) {
         position: relative;
     }
     .help-content img { width: 100%; border-radius: 8px; margin-bottom: 20px; border: 2px solid #eee; }
-    
-    /* 도움말 텍스트 스타일 강화 */
     .help-text {
-        font-size: 1.4rem; /* 글자 크기 키움 */
-        color: #111;       /* 진한 검정 */
-        font-weight: bold; /* 굵게 */
-        line-height: 1.5;  /* 줄 간격 */
-        margin-bottom: 25px;
-        word-break: keep-all; 
+        font-size: 1.4rem; color: #111; font-weight: bold; line-height: 1.5; margin-bottom: 25px; word-break: keep-all; 
     }
-
     .help-btn-open {
         background: none; border: none; color: #3b82f6; 
         font-size: 0.95rem; font-weight: bold; cursor: pointer; 
@@ -114,6 +109,11 @@ if (file_exists($imap_env_path)) {
 
   <div class="step" id="step-detail">
     <h2 id="detail-title">더 자세한 내용을 알려주세요</h2>
+    
+    <div id="customInputArea">
+        <input type="text" id="customInput" placeholder="불편한 점을 입력해주세요">
+        <button class="nav-btn" style="width:100%;" onclick="submitCustomInput()">입력 완료</button>
+    </div>
   </div>
 
   <div class="step main-step" id="step2">
@@ -188,9 +188,9 @@ if (file_exists($imap_env_path)) {
 
   <script>
     const steps = document.querySelectorAll('.main-step');
-    
     const detailStepEl = document.getElementById('step-detail');
     const detailTitle = document.getElementById('detail-title');
+    const customInputArea = document.getElementById('customInputArea'); 
     
     const btnContainer = document.getElementById('btnContainer');
     const sentenceBox = document.getElementById('sentenceBox');
@@ -256,46 +256,30 @@ if (file_exists($imap_env_path)) {
     function openHelp() { document.getElementById("help-modal").style.display = "flex"; }
     function closeHelp() { document.getElementById("help-modal").style.display = "none"; }
 
-// [수정됨] 에러 원인을 알려주는 버전
+    // [복구됨] 문자 전송 로직
     async function submitFinal() {
         updateSentenceBox();
         const finalSentence = makeSentence();
         
-        // imap.env에서 가져올 이메일 (PHP에서 주입 필요)
         const targetEmail = "<?= isset($myEmail) ? $myEmail : 'busanminwon@gmail.com' ?>"; 
 
         if(!confirm("신고 내용을 전송하시겠습니까?")) return;
 
         let token = "";
-        
         try {
-            // 1. DB 저장 요청
             const response = await fetch('save_report.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ content: finalSentence })
             });
-            
-            // 응답이 JSON이 아닐 경우(PHP 에러 등)를 대비
             const text = await response.text(); 
             try {
                 const result = JSON.parse(text);
-                
-                if (result.success) {
-                    token = result.token;
-                    // console.log("토큰 발급 성공:", token); // 테스트용
-                } else {
-                    alert("⚠️ 서버 저장 실패: " + result.message);
-                }
-            } catch (e) {
-                alert("⚠️ 서버 오류(PHP 에러): " + text); // PHP 문법 에러 등이 나면 여기서 뜸
-            }
+                if (result.success) token = result.token;
+            } catch (e) {}
+        } catch (error) {}
 
-        } catch (error) {
-            alert("⚠️ 네트워크 오류: " + error);
-        }
-
-        // 2. 문자 전송 (토큰이 없어도 일단 창은 띄움)
+        // 문자 메시지 내용 구성
         let msg = finalSentence;
         if(token) {
             msg += "\n\n[접수코드:" + token + "]"; 
@@ -303,28 +287,21 @@ if (file_exists($imap_env_path)) {
             msg += "\n\n(서버 저장 실패로 접수코드 없음)";
         }
 
+        // [핵심] 문자 앱 실행 로직 복구
         const encodedBody = encodeURIComponent(msg);
         const separator = navigator.userAgent.match(/iPhone/i) ? "&" : "?";
         location.href = "sms:" + targetEmail + separator + "body=" + encodedBody;
     }
 
-    // [중요] 화면 업데이트 (입력값에 따라 텍스트 변경)
     function updateDisplay() {
         const d = document.getElementById("display");
         const len = inputNum.length;
-
-        if (len === 0) {
-            d.innerText = "--편성 -호차";
-        } else if (len === 1) {
-            d.innerText = inputNum; 
-        } else if (len === 2) {
-            d.innerText = inputNum[0] + "편성 " + inputNum[1] + "호차";
-        } else if (len === 3) {
-            d.innerText = inputNum.substring(0, 2) + "편성 " + inputNum[2] + "호차";
-        }
+        if (len === 0) d.innerText = "--편성 -호차";
+        else if (len === 1) d.innerText = inputNum; 
+        else if (len === 2) d.innerText = inputNum[0] + "편성 " + inputNum[1] + "호차";
+        else if (len === 3) d.innerText = inputNum.substring(0, 2) + "편성 " + inputNum[2] + "호차";
     }
 
-    // [수정됨] 입력 함수: 최대 3글자 제한
     function press(n) {
         if(inputNum.length < 3) { 
             inputNum += n;
@@ -337,7 +314,6 @@ if (file_exists($imap_env_path)) {
         updateDisplay(); 
     }
 
-    // [수정됨] 전송 체크: 2자리 또는 3자리만 허용
     function checkAndSend() {
         if (inputNum.length === 2 || inputNum.length === 3) {
             document.getElementById("line-modal").style.display = "flex";
@@ -353,35 +329,51 @@ if (file_exists($imap_env_path)) {
     function selectLine(line) {
         closeModal();
         report.line = line + '호선';
-
-        // 2자리 입력 시 (예: 13 -> 1편성 3호차)
         if (inputNum.length === 2) {
             const trainSet = inputNum.charAt(0); 
             const carOrder = inputNum.charAt(1); 
             report.detail = trainSet + '편성 ' + carOrder + '호차';
-        } 
-        // 3자리 입력 시 (예: 347 -> 34편성 7호차)
-        else {
+        } else {
             const trainSet = inputNum.substring(0, 2); 
             const carOrder = inputNum.charAt(2); 
             report.detail = trainSet + '편성 ' + carOrder + '호차';
         }
-        
         submitFinal();
     }
 
-    // -----------------------------------------------------
-    // 메인 스텝 로직
-    // -----------------------------------------------------
     function handleSituationStep(situationText) {
         report.situation = situationText;
         report.detailSituation = '';
 
-        if (detailOptions[situationText]) {
+        if (situationText === '직접 입력') {
+            showCustomInputStep();
+        } else if (detailOptions[situationText]) {
             showDetailStep(situationText);
         } else {
             nextStep(null, null); 
         }
+    }
+
+    function showCustomInputStep() {
+        updateSentenceBox();
+        steps[currentStep - 1].classList.remove('active');
+        
+        detailStepEl.classList.add('active');
+        detailTitle.innerText = "불편사항을 직접 적어주세요";
+        btnContainer.innerHTML = '';
+        
+        customInputArea.style.display = 'flex';
+        document.getElementById('customInput').focus();
+    }
+
+    function submitCustomInput() {
+        const val = document.getElementById('customInput').value;
+        if (!val) { alert("내용을 입력해주세요."); return; }
+        report.detailSituation = val;
+        
+        customInputArea.style.display = 'none';
+        detailStepEl.classList.remove('active');
+        nextStep(null, null);
     }
 
     function showDetailStep(situationText) {
@@ -390,6 +382,7 @@ if (file_exists($imap_env_path)) {
         
         detailStepEl.classList.add('active');
         detailTitle.innerText = `"${situationText}"\n구체적으로 어떤가요?`;
+        customInputArea.style.display = 'none';
 
         btnContainer.innerHTML = '';
         const options = detailOptions[situationText];
@@ -460,13 +453,17 @@ if (file_exists($imap_env_path)) {
     function makeSentence() {
       let sentence = '';
       if (report.place) sentence += report.place + ' ';
+      
       if (report.situation) {
-          sentence += report.situation;
-          if (report.detailSituation) {
-              sentence += `(${report.detailSituation})`;
+          if (report.situation === '직접 입력') {
+              if (report.detailSituation) sentence += report.detailSituation + ' ';
+          } else {
+              sentence += report.situation;
+              if (report.detailSituation) sentence += `(${report.detailSituation})`;
+              sentence += ' ';
           }
-          sentence += ' ';
       }
+      
       if (report.line) sentence += '지금 ' + report.line + ' ';
       if (report.detail) sentence += report.detail;
       return sentence.trim();
