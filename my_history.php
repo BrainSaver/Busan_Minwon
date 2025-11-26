@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['phone'])) {
         <?php endif; ?>
     <?php endif; ?>
 
-    <a href="index.php" class="back-btn">⬅ 홈으로 돌아가기</a>
+    <a href="first.php" class="back-btn">⬅ 홈으로 돌아가기</a>
 </div>
 
 </body>
