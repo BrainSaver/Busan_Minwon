@@ -29,14 +29,31 @@ if (file_exists($imap_env_path)) {
     button.nav-btn { flex: 1 1 45%; background: #3b82f6; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; transition: transform 0.2s ease, background 0.3s ease; cursor: pointer; }
     button.nav-btn:active { transform: scale(0.96); background: #2563eb; }
     
-    /* 직접 입력 텍스트박스 스타일 */
+    /* 직접 입력 스타일 */
+    
     #customInputArea {
-        width: 100%; max-width: 350px; display: none; flex-direction: column; gap: 10px;
+        width: 100%; max-width: 350px; display: none; flex-direction: column; gap: 15px;
     }
     #customInput {
-        padding: 15px; font-size: 16px; border: 2px solid #ddd; border-radius: 10px; width: 100%; box-sizing: border-box;
+        padding: 15px; 
+        font-size: 18px; 
+        border: 2px solid #ddd; 
+        border-radius: 12px; 
+        width: 100%; 
+        box-sizing: border-box; 
+        transition: border-color 0.3s;
+        
+        font-family: "Pretendard", sans-serif; 
+        resize: none; 
+        overflow-y: auto; 
+        min-height: 56px; 
+        max-height: 200px; 
+        line-height: 1.5; 
     }
     #customInput:focus { outline: none; border-color: #3b82f6; }
+    .input-confirm-btn {
+        width: 100%; padding: 15px; background: #3b82f6; color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
+    }
 
     /* --------------------------------------------------- */
     /* [수정] 다이얼(Spinner) 스타일 */
@@ -151,14 +168,15 @@ if (file_exists($imap_env_path)) {
   </div>
 
   <div class="step main-step active fadeIn" id="step1">
-    <h2>어디 계신가요?</h2>
+    <h2>지금 어디 계신가요?</h2>
   </div>
 
   <div class="step" id="step-detail">
     <h2 id="detail-title">더 자세한 내용을 알려주세요</h2>
+
     <div id="customInputArea">
-        <input type="text" id="customInput" placeholder="불편한 점을 입력해주세요">
-        <button class="nav-btn" style="width:100%;" onclick="submitCustomInput()">입력 완료</button>
+        <textarea id="customInput" rows="1" placeholder="여기를 눌러서 입력해주세요"></textarea>
+        <button class="input-confirm-btn" onclick="submitCustomInput()">입력 완료</button>
     </div>
   </div>
 
@@ -262,7 +280,10 @@ if (file_exists($imap_env_path)) {
     };
 
     const detailOptions = {
-        '온도 조절이 필요해요': [ { text: '더워요', val: '더워요' }, { text: '추워요', val: '추워요' } ],
+        '온도 조절이 필요해요': [ 
+            { text: '더워요', val: '더워요' }, 
+            { text: '추워요', val: '추워요' } 
+        ],
         '소란을 피워요': [
             { text: '구걸을 해요', val: '구걸을 해요' },
             { text: '종교 권유를 해요', val: '종교 권유를 해요' },
@@ -272,19 +293,20 @@ if (file_exists($imap_env_path)) {
             { text: '음식을 먹고 있어요', val: '음식을 먹고 있어요' },
         ],
         '청소가 필요해요': [
-            { text: '광고지가 붙어있어요', val: '의자 파손' },
-            { text: '의자 시트가 더러워요', val: '출입문 고장' },
-            { text: '바닥에 쓰레기가 많아요', val: '유리창 파손' },
-            { text: '바닥에 액체가 흘렀어요', val: '손잡이 파손' },
-            { text: '벽이 더러워요', val: '조명 고장' },
-            { text: '손잡이가 더러워요', val: '손잡이 파손' },
+            { text: '광고지가 붙어있어요', val: '광고지가 붙어있어요' },
+            { text: '의자 시트가 더러워요', val: '의자 시트가 더러워요' },
+            { text: '바닥에 쓰레기가 많아요', val: '바닥에 쓰레기가 많아요' },
+            { text: '바닥에 액체가 흘렀어요', val: '바닥에 액체가 흘렀어요' },
+            { text: '벽이 더러워요', val: '벽이 더러워요' },
+            { text: '손잡이가 더러워요', val: '손잡이가 더러워요' }
         ],
-        '시설물이 파손됐어요': [
-            { text: '의자가 부서짐', val: '의자 파손' },
-            { text: '출입문 고장', val: '출입문 고장' },
-            { text: '유리창 깨짐', val: '유리창 파손' },
-            { text: '손잡이 파손', val: '손잡이 파손' },
-            { text: '조명/전광판 고장', val: '조명 고장' }
+        '시설물이 고장났어요': [
+            { text: '의자가 파손됐어요', val: '의자가 파손됐어요' },
+            { text: '손잡이가 파손됐어요', val: '손잡이가 파손됐어요' },
+            { text: '유리창이 깨졌어요', val: '유리창이 깨졌어요' },
+            { text: '방송 스피커가 고장났어요', val: '방송 스피커가 고장났어요' },
+            { text: '안내판이 고장났어요', val: '안내판이 고장났어요' },
+            { text: '조명이 고장났어요', val: '조명이 고장났어요' }
         ],
     };
 
@@ -412,6 +434,7 @@ if (file_exists($imap_env_path)) {
         submitFinal();
     }
 
+    // 상황 선택 분기 함수
     function handleSituationStep(situationText) {
         report.situation = situationText;
         report.detailSituation = '';
@@ -425,14 +448,26 @@ if (file_exists($imap_env_path)) {
         }
     }
 
+    // 직접 입력 함수
     function showCustomInputStep() {
         updateSentenceBox();
         steps[currentStep - 1].classList.remove('active');
         detailStepEl.classList.add('active');
-        detailTitle.innerText = "불편사항을 직접 적어주세요";
+        detailTitle.innerText = "불편사항을 직접 적어주세요.";
         btnContainer.innerHTML = '';
         customInputArea.style.display = 'flex';
-        document.getElementById('customInput').focus();
+
+        const input = document.getElementById('customInput');
+        input.value = '';
+        input.style.height = 'auto';
+
+        // 내용 입력 시 높이 자동 조절 로직
+        input.oninput = function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        };
+
+        setTimeout(() => input.focus(), 300);
     }
 
     function submitCustomInput() {
@@ -477,7 +512,7 @@ if (file_exists($imap_env_path)) {
         { text: '온도 조절이 필요해요', action: () => handleSituationStep('온도 조절이 필요해요') },
         { text: '소란을 피워요', action: () => handleSituationStep('소란을 피워요') },
         { text: '청소가 필요해요', action: () => handleSituationStep('청소가 필요해요') },
-        { text: '시설물이 파손됐어요', action: () => handleSituationStep('시설물이 파손됐어요') },
+        { text: '시설물이 고장났어요', action: () => handleSituationStep('시설물이 고장났어요') },
         { text: '직접 입력', action: () => handleSituationStep('직접 입력') }
       ],
       3: [
