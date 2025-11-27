@@ -1,5 +1,5 @@
 <?php
-// main.php 맨 윗줄
+// main.php
 $imap_env_path = __DIR__ . '/admin/imap.env';
 $myEmail = 'busanminwon@gmail.com'; // 기본값
 
@@ -20,7 +20,7 @@ if (file_exists($imap_env_path)) {
   <style>
     /* 기본 스타일 */
     body { margin: 0; background: #f8f9fb; font-family: "Pretendard", sans-serif; color: #222; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; overflow: hidden; }
-    .sentence-box { background: #ffffff; margin: 12px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 20px; font-size: 1.1rem; text-align: center; color: #1e3a8a; min-height: 80px; line-height: 1.4; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
+    .sentence-box { background: #ffffff; margin: 12px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 20px; font-size: 1.1rem; text-align: center; color: #1e3a8a; min-height: 80px; line-height: 1.4; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; z-index: 5; }
     .step { flex: 1; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; opacity: 0; transform: translateY(30px); transition: all 0.4s ease; width: 100%; box-sizing: border-box; }
     .step.active { display: flex; opacity: 1; transform: translateY(0); }
     h2 { font-size: 1.3rem; margin-bottom: 20px; }
@@ -29,16 +29,6 @@ if (file_exists($imap_env_path)) {
     button.nav-btn { flex: 1 1 45%; background: #3b82f6; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; transition: transform 0.2s ease, background 0.3s ease; cursor: pointer; }
     button.nav-btn:active { transform: scale(0.96); background: #2563eb; }
     
-    /* 입력 UI 스타일 */
-    #display { 
-        font-size: 32px; 
-        height: 70px; line-height: 70px; width: 100%; max-width: 400px;
-        margin-bottom: 20px; background: #fff; 
-        border: 2px solid #ddd; border-radius: 12px; 
-        font-weight: bold; letter-spacing: 1px; color: #333;
-        display: none; 
-    }
-
     /* 직접 입력 텍스트박스 스타일 */
     #customInputArea {
         width: 100%; max-width: 350px; display: none; flex-direction: column; gap: 10px;
@@ -48,19 +38,95 @@ if (file_exists($imap_env_path)) {
     }
     #customInput:focus { outline: none; border-color: #3b82f6; }
 
-    .keypad { 
-        display: none; 
-        grid-template-columns: repeat(3, 1fr); gap: 10px; 
-        max-width: 400px; width: 100%; margin: 0 auto; 
+    /* --------------------------------------------------- */
+    /* [수정] 다이얼(Spinner) 스타일 */
+    /* --------------------------------------------------- */
+    .dial-wrapper {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        max-width: 360px;
+        height: 160px; /* 다이얼 전체 높이 */
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+        margin-bottom: 20px;
+        /* 드래그 방지 */
+        user-select: none; 
+        -webkit-user-select: none;
     }
-    .key-btn { 
-        font-size: 24px; padding: 15px; background: #fff; 
-        border: none; border-radius: 12px; cursor: pointer; 
-        box-shadow: 0 3px 0 #e9ecef; color: #333; font-weight: bold;
+
+    /* 중앙 하이라이트 바 (선택 영역) */
+    .dial-highlight {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 50px; /* 아이템 높이와 동일 */
+        margin-top: -25px;
+        background-color: rgba(59, 130, 246, 0.1);
+        border-top: 1px solid #3b82f6;
+        border-bottom: 1px solid #3b82f6;
+        pointer-events: none; /* 클릭 통과 */
+        z-index: 1;
     }
-    .key-btn:active { transform: translateY(2px); box-shadow: none; background: #f1f3f5; }
-    .btn-send { background: #ff6b6b; color: white; box-shadow: 0 3px 0 #fa5252; }
-    
+
+    .dial-column {
+        height: 100%;
+        width: 60px;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory; /* 스크롤이 딱딱 멈추게 */
+        -ms-overflow-style: none;  /* IE, Edge 스크롤바 숨김 */
+        scrollbar-width: none;  /* Firefox 스크롤바 숨김 */
+        z-index: 2;
+        padding: 0;
+    }
+    .dial-column::-webkit-scrollbar { display: none; /* Chrome 등 스크롤바 숨김 */ }
+
+    .dial-item {
+        height: 50px; /* 아이템 높이 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: #ccc;
+        scroll-snap-align: center; /* 중앙 정렬 */
+        transition: all 0.2s ease;
+    }
+    /* 선택된 아이템 스타일 */
+    .dial-item.active {
+        color: #222;
+        font-weight: bold;
+        font-size: 30px;
+        transform: scale(1.1);
+    }
+
+    .dial-label {
+        font-size: 20px;
+        font-weight: bold;
+        color: #333;
+        margin: 0 5px;
+        z-index: 2;
+        padding-bottom: 3px;
+    }
+
+    .btn-send-dial {
+        width: 100%; max-width: 360px;
+        padding: 15px;
+        background: #ff6b6b; color: white;
+        border: none; border-radius: 12px;
+        font-size: 1.2rem; font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+        transition: transform 0.2s;
+    }
+    .btn-send-dial:active { transform: scale(0.98); }
+
+
+    /* 역 선택 스크롤 */
     .station-scroll-wrapper { width: 100%; overflow-x: auto; display: none; padding: 10px 0; -ms-overflow-style: none; scrollbar-width: none; }
     .station-scroll-wrapper::-webkit-scrollbar { display: none; }
     .station-container { display: inline-flex; gap: 10px; padding: 0 20px; }
@@ -68,30 +134,21 @@ if (file_exists($imap_env_path)) {
     .station-chip.selected { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 4px 8px rgba(59,130,246,0.3); transform: translateY(-2px); font-weight: bold; }
     
     /* 모달 스타일 */
-    #line-modal, #help-modal {
+    #help-modal {
         display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.8); z-index: 999;
+        background: rgba(0,0,0,0.85); z-index: 1000;
         flex-direction: column; justify-content: center; align-items: center;
     }
-    #help-modal { background: rgba(0,0,0,0.85); z-index: 1000; }
-
     .help-content {
         background: white; padding: 25px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center;
-        position: relative;
     }
     .help-content img { width: 100%; border-radius: 8px; margin-bottom: 20px; border: 2px solid #eee; }
-    .help-text {
-        font-size: 1.4rem; color: #111; font-weight: bold; line-height: 1.5; margin-bottom: 25px; word-break: keep-all; 
-    }
+    .help-text { font-size: 1.4rem; color: #111; font-weight: bold; line-height: 1.5; margin-bottom: 25px; word-break: keep-all; }
     .help-btn-open {
         background: none; border: none; color: #3b82f6; 
         font-size: 0.95rem; font-weight: bold; cursor: pointer; 
         text-decoration: underline; margin-top: 8px;
     }
-
-    .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 350px; text-align: center; }
-    .color-btn { display: block; width: 100%; padding: 15px; margin: 10px 0; color: white; font-size: 18px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    .bg-1 { background-color: #f39c12; } .bg-2 { background-color: #12b560; } .bg-3 { background-color: #d1a575; } .bg-4 { background-color: #2e78c9; }
 
     .fadeIn { animation: fadeIn 0.5s ease forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -109,7 +166,6 @@ if (file_exists($imap_env_path)) {
 
   <div class="step" id="step-detail">
     <h2 id="detail-title">더 자세한 내용을 알려주세요</h2>
-    
     <div id="customInputArea">
         <input type="text" id="customInput" placeholder="불편한 점을 입력해주세요">
         <button class="nav-btn" style="width:100%;" onclick="submitCustomInput()">입력 완료</button>
@@ -125,30 +181,29 @@ if (file_exists($imap_env_path)) {
   </div>
 
   <div class="step main-step" id="step4">
-    <h2 id="step4-title">몇 칸에 계신가요?</h2>
+    <h2 id="step4-title">차량 번호를 선택해주세요</h2>
     
-    <div class="guide" id="keypad-guide" style="display:none; font-size: 14px; color: #666; margin-bottom: 15px;">
-        보이는 숫자 2~3자리를 입력하세요.<br>
-        <strong style="color:#e03131;">3글자시에는 전체입력 부탁드립니다.</strong><br>
+    <div class="guide" id="dial-guide" style="display:none; font-size: 14px; color: #666; margin-bottom: 15px;">
+        위아래로 드래그하여 번호를 맞춰주세요.<br>
         <button class="help-btn-open" onclick="openHelp()">📷 번호가 어디 있나요?</button>
     </div>
 
-    <div id="display">--편성 -호차</div>
-
-    <div class="keypad" id="keypad">
-        <button class="key-btn" onclick="press(1)">1</button>
-        <button class="key-btn" onclick="press(2)">2</button>
-        <button class="key-btn" onclick="press(3)">3</button>
-        <button class="key-btn" onclick="press(4)">4</button>
-        <button class="key-btn" onclick="press(5)">5</button>
-        <button class="key-btn" onclick="press(6)">6</button>
-        <button class="key-btn" onclick="press(7)">7</button>
-        <button class="key-btn" onclick="press(8)">8</button>
-        <button class="key-btn" onclick="press(9)">9</button>
-        <button class="key-btn" onclick="clearInput()" style="color:#e03131">지움</button>
-        <button class="key-btn" onclick="press(0)">0</button>
-        <button class="key-btn btn-send" onclick="checkAndSend()">🚀 전송</button>
+    <div class="dial-wrapper" id="dialWrapper" style="display:none;">
+        <div class="dial-highlight"></div>
+        
+        <div class="dial-column" id="dial1"></div>
+        <div class="dial-column" id="dial2"></div>
+        
+        <div class="dial-label">편성</div>
+        
+        <div class="dial-column" id="dial3"></div>
+        
+        <div class="dial-label">호차</div>
     </div>
+
+    <button class="btn-send-dial" id="dialSubmitBtn" style="display:none;" onclick="submitDialData()">
+        🚀 신고 전송하기
+    </button>
 
     <div class="station-scroll-wrapper" id="stationWrapper">
       <div class="station-container" id="stationList"></div>
@@ -174,18 +229,6 @@ if (file_exists($imap_env_path)) {
     </div>
   </div>
 
-  <div id="line-modal">
-    <div class="modal-content">
-        <h3>🎨 노선 색깔을 선택하세요</h3>
-        <p>입력하신 번호에 호선 정보가 없습니다.<br>지금 타고 계신 노선 색깔은?</p>
-        <button class="color-btn bg-1" onclick="selectLine('1')">🧡 1호선 (주황색)</button>
-        <button class="color-btn bg-2" onclick="selectLine('2')">💚 2호선 (초록색)</button>
-        <button class="color-btn bg-3" onclick="selectLine('3')">🤎 3호선 (갈색)</button>
-        <button class="color-btn bg-4" onclick="selectLine('4')">💙 4호선 (파란색)</button>
-        <button onclick="closeModal()" style="margin-top:10px; background:#ddd; padding:10px; width:100%; border-radius:8px; border:none;">취소</button>
-    </div>
-  </div>
-
   <script>
     const steps = document.querySelectorAll('.main-step');
     const detailStepEl = document.getElementById('step-detail');
@@ -200,16 +243,15 @@ if (file_exists($imap_env_path)) {
     const stationList = document.getElementById('stationList');
     const scrollGuide = document.getElementById('scroll-guide');
     
-    const keypad = document.getElementById('keypad');
-    const display = document.getElementById('display');
-    const keypadGuide = document.getElementById('keypad-guide');
+    // 다이얼 관련 요소
+    const dialWrapper = document.getElementById('dialWrapper');
+    const dialGuide = document.getElementById('dial-guide');
+    const dialSubmitBtn = document.getElementById('dialSubmitBtn');
     
     const hiddenContent = document.getElementById('hiddenContent');
     const finalForm = document.getElementById('finalForm');
 
     let currentStep = 1;
-    let inputNum = ""; 
-
     let report = {
       place: '',
       situation: '',
@@ -218,6 +260,9 @@ if (file_exists($imap_env_path)) {
       detail: '', 
       isInside: true
     };
+
+    // 다이얼 현재 값 저장용
+    let dialValues = { d1: 0, d2: 0, d3: 1 };
 
     const stationDB = {
       '1호선': ['다대포해수욕장','다대포항','낫개','신장림','장림','동매','신평','하단','당리','사하','괴정','대티','서대신','동대신','토성','자갈치','남포','중앙','부산역','초량','부산진','좌천','범일','범내골','서면','부전','양정','시청','연산','교대','동래','명륜','온천장','부산대','장전','구서','두실','남산','범어사','노포'],
@@ -256,11 +301,9 @@ if (file_exists($imap_env_path)) {
     function openHelp() { document.getElementById("help-modal").style.display = "flex"; }
     function closeHelp() { document.getElementById("help-modal").style.display = "none"; }
 
-    // [복구됨] 문자 전송 로직
     async function submitFinal() {
         updateSentenceBox();
         const finalSentence = makeSentence();
-        
         const targetEmail = "<?= isset($myEmail) ? $myEmail : 'busanminwon@gmail.com' ?>"; 
 
         if(!confirm("신고 내용을 전송하시겠습니까?")) return;
@@ -279,67 +322,108 @@ if (file_exists($imap_env_path)) {
             } catch (e) {}
         } catch (error) {}
 
-        // 문자 메시지 내용 구성
         let msg = finalSentence;
-        if(token) {
-            msg += "\n\n[접수코드:" + token + "]"; 
-        } else {
-            msg += "\n\n(서버 저장 실패로 접수코드 없음)";
-        }
+        if(token) msg += "\n\n[접수코드:" + token + "]"; 
+        else msg += "\n\n(서버 저장 실패로 접수코드 없음)";
 
-        // [핵심] 문자 앱 실행 로직 복구
         const encodedBody = encodeURIComponent(msg);
         const separator = navigator.userAgent.match(/iPhone/i) ? "&" : "?";
         location.href = "sms:" + targetEmail + separator + "body=" + encodedBody;
     }
 
-    function updateDisplay() {
-        const d = document.getElementById("display");
-        const len = inputNum.length;
-        if (len === 0) d.innerText = "--편성 -호차";
-        else if (len === 1) d.innerText = inputNum; 
-        else if (len === 2) d.innerText = inputNum[0] + "편성 " + inputNum[1] + "호차";
-        else if (len === 3) d.innerText = inputNum.substring(0, 2) + "편성 " + inputNum[2] + "호차";
+    // [수정됨] 다이얼 UI 초기화 및 로직
+    function initDials() {
+        createDial('dial1', 0, 9, 0); // 편성 앞자리 (0~9)
+        createDial('dial2', 0, 9, 0); // 편성 뒷자리 (0~9)
+        createDial('dial3', 1, 9, 1); // 호차 (1~9)
     }
 
-    function press(n) {
-        if(inputNum.length < 3) { 
-            inputNum += n;
-            updateDisplay(); 
+    function createDial(elementId, start, end, initialVal) {
+        const container = document.getElementById(elementId);
+        container.innerHTML = '';
+        
+        // 상단 여백 (스크롤 중앙 정렬을 위해)
+        container.appendChild(createSpacer());
+
+        for (let i = start; i <= end; i++) {
+            const item = document.createElement('div');
+            item.className = 'dial-item';
+            item.innerText = i;
+            item.dataset.val = i;
+            container.appendChild(item);
+        }
+
+        // 하단 여백
+        container.appendChild(createSpacer());
+
+        // 스크롤 이벤트 리스너
+        container.addEventListener('scroll', () => {
+            updateActiveItem(container, elementId);
+        });
+
+        // 초기값 세팅 (약간의 딜레이 후 스크롤)
+        setTimeout(() => {
+            const items = container.querySelectorAll('.dial-item');
+            items.forEach(item => {
+                if(parseInt(item.innerText) == initialVal) {
+                    // 해당 아이템으로 스크롤 이동
+                    container.scrollTop = item.offsetTop - container.offsetTop - 55; // 55는 Spacer 높이
+                }
+            });
+            updateActiveItem(container, elementId);
+        }, 100);
+    }
+
+    function createSpacer() {
+        const div = document.createElement('div');
+        div.style.height = "55px"; // highlight height(50) + margin/2
+        div.style.flexShrink = "0";
+        return div;
+    }
+
+    function updateActiveItem(container, dialId) {
+        const items = container.querySelectorAll('.dial-item');
+        let closest = null;
+        let minDiff = Infinity;
+        const containerCenter = container.scrollTop + (container.clientHeight / 2);
+
+        items.forEach(item => {
+            const itemCenter = item.offsetTop + (item.clientHeight / 2); // 부모 기준
+            const diff = Math.abs(containerCenter - itemCenter);
+            
+            item.classList.remove('active');
+            
+            if (diff < minDiff) {
+                minDiff = diff;
+                closest = item;
+            }
+        });
+
+        if (closest) {
+            closest.classList.add('active');
+            // 값 업데이트
+            if (dialId === 'dial1') dialValues.d1 = closest.innerText;
+            if (dialId === 'dial2') dialValues.d2 = closest.innerText;
+            if (dialId === 'dial3') dialValues.d3 = closest.innerText;
+            
+            // 화면에 반영
+            updateReportDetailFromDial();
+            updateSentenceBox();
         }
     }
 
-    function clearInput() {
-        inputNum = "";
-        updateDisplay(); 
+    function updateReportDetailFromDial() {
+        // 예: 96편성 5호차
+        report.detail = `${dialValues.d1}${dialValues.d2}편성 ${dialValues.d3}호차`;
     }
 
-    function checkAndSend() {
-        if (inputNum.length === 2 || inputNum.length === 3) {
-            document.getElementById("line-modal").style.display = "flex";
-        } else {
-            alert("차량 번호 2자리 또는 3자리를 입력해주세요.");
-        }
-    }
-
-    function closeModal() {
-        document.getElementById("line-modal").style.display = "none";
-    }
-
-    function selectLine(line) {
-        closeModal();
-        report.line = line + '호선';
-        if (inputNum.length === 2) {
-            const trainSet = inputNum.charAt(0); 
-            const carOrder = inputNum.charAt(1); 
-            report.detail = trainSet + '편성 ' + carOrder + '호차';
-        } else {
-            const trainSet = inputNum.substring(0, 2); 
-            const carOrder = inputNum.charAt(2); 
-            report.detail = trainSet + '편성 ' + carOrder + '호차';
-        }
+    // 다이얼 전송 버튼 클릭 시
+    function submitDialData() {
+        updateReportDetailFromDial();
         submitFinal();
     }
+
+    // ----------------------------------------------------------------
 
     function handleSituationStep(situationText) {
         report.situation = situationText;
@@ -357,11 +441,9 @@ if (file_exists($imap_env_path)) {
     function showCustomInputStep() {
         updateSentenceBox();
         steps[currentStep - 1].classList.remove('active');
-        
         detailStepEl.classList.add('active');
         detailTitle.innerText = "불편사항을 직접 적어주세요";
         btnContainer.innerHTML = '';
-        
         customInputArea.style.display = 'flex';
         document.getElementById('customInput').focus();
     }
@@ -370,7 +452,6 @@ if (file_exists($imap_env_path)) {
         const val = document.getElementById('customInput').value;
         if (!val) { alert("내용을 입력해주세요."); return; }
         report.detailSituation = val;
-        
         customInputArea.style.display = 'none';
         detailStepEl.classList.remove('active');
         nextStep(null, null);
@@ -379,14 +460,12 @@ if (file_exists($imap_env_path)) {
     function showDetailStep(situationText) {
         updateSentenceBox();
         steps[currentStep - 1].classList.remove('active');
-        
         detailStepEl.classList.add('active');
         detailTitle.innerText = `"${situationText}"\n구체적으로 어떤가요?`;
         customInputArea.style.display = 'none';
 
         btnContainer.innerHTML = '';
         const options = detailOptions[situationText];
-        
         options.forEach(opt => {
             const b = document.createElement('button');
             b.className = 'nav-btn';
@@ -499,20 +578,33 @@ if (file_exists($imap_env_path)) {
         steps[currentStep - 1].classList.add('active');
 
         if (currentStep === 4) {
-            clearInput(); 
-
+            // [수정됨] 스텝 4 로직 분기
             if (report.isInside) {
-                step4Title.innerText = "차량 번호를 입력해주세요";
-                keypad.style.display = 'grid';
-                display.style.display = 'block';
-                keypadGuide.style.display = 'block';
+                step4Title.innerText = "차량 번호를 선택해주세요";
+                
+                // 기존 키패드 숨김
+                // document.getElementById('keypad').style.display = 'none'; // 기존 코드 삭제됨
+                // document.getElementById('display').style.display = 'none'; // 기존 코드 삭제됨
+                
+                // 다이얼 UI 표시
+                dialWrapper.style.display = 'flex';
+                dialGuide.style.display = 'block';
+                dialSubmitBtn.style.display = 'block';
+                
+                // 역 목록 숨김
                 stationWrapper.style.display = 'none';
                 scrollGuide.style.display = 'none';
+
+                // 다이얼 초기화
+                initDials();
             } else {
                 step4Title.innerText = "현재 무슨 역에 계신가요?";
-                keypad.style.display = 'none';
-                display.style.display = 'none';
-                keypadGuide.style.display = 'none';
+                
+                // 다이얼 UI 숨김
+                dialWrapper.style.display = 'none';
+                dialGuide.style.display = 'none';
+                dialSubmitBtn.style.display = 'none';
+
                 stationWrapper.style.display = 'block';
                 scrollGuide.style.display = 'block';
                 renderStationList(report.line);
