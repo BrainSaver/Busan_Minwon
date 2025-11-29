@@ -51,6 +51,16 @@ if (file_exists($imap_env_path)) {
         line-height: 1.5; 
     }
     #customInput:focus { outline: none; border-color: #3b82f6; }
+
+    #charCount {
+        text-align: right;
+        font-size: 13px;
+        color: #888;
+        margin-top: -10px;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+
     .input-confirm-btn {
         width: 100%; padding: 15px; background: #3b82f6; color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
     }
@@ -175,7 +185,8 @@ if (file_exists($imap_env_path)) {
     <h2 id="detail-title">더 자세한 내용을 알려주세요</h2>
 
     <div id="customInputArea">
-        <textarea id="customInput" rows="1" placeholder="여기를 눌러서 입력해주세요"></textarea>
+        <textarea id="customInput" rows="1" maxlength="200" placeholder="여기를 눌러서 입력해주세요"></textarea>
+        <div id="charCount">0/200</div>
         <button class="input-confirm-btn" onclick="submitCustomInput()">입력 완료</button>
     </div>
   </div>
@@ -291,6 +302,8 @@ if (file_exists($imap_env_path)) {
             { text: '욕설을 해요', val: '욕설을 해요' },
             { text: '시끄럽게 떠들어요', val: '시끄럽게 떠들어요' },
             { text: '음식을 먹고 있어요', val: '음식을 먹고 있어요' },
+            { text: '빈좌석을 못쓰게 해요', val: '빈좌석을 못쓰게 해요' },
+            { text: '의자에 누워있어요', val: '의자에 누워있어요' }
         ],
         '청소가 필요해요': [
             { text: '광고지가 붙어있어요', val: '광고지가 붙어있어요' },
@@ -300,14 +313,14 @@ if (file_exists($imap_env_path)) {
             { text: '벽이 더러워요', val: '벽이 더러워요' },
             { text: '손잡이가 더러워요', val: '손잡이가 더러워요' }
         ],
-        '시설물이 고장났어요': [
+        '시설물이 파손됐어요': [
             { text: '의자가 파손됐어요', val: '의자가 파손됐어요' },
             { text: '손잡이가 파손됐어요', val: '손잡이가 파손됐어요' },
             { text: '유리창이 깨졌어요', val: '유리창이 깨졌어요' },
             { text: '방송 스피커가 고장났어요', val: '방송 스피커가 고장났어요' },
             { text: '안내판이 고장났어요', val: '안내판이 고장났어요' },
             { text: '조명이 고장났어요', val: '조명이 고장났어요' }
-        ],
+        ]
     };
 
     function openHelp() { document.getElementById("help-modal").style.display = "flex"; }
@@ -458,13 +471,19 @@ if (file_exists($imap_env_path)) {
         customInputArea.style.display = 'flex';
 
         const input = document.getElementById('customInput');
+        const countDisplay = document.getElementById('charCount');
         input.value = '';
         input.style.height = 'auto';
+        countDisplay.innerText = "0/200";
 
         // 내용 입력 시 높이 자동 조절 로직
         input.oninput = function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
+
+            const currentLength = this.value.length;
+            const maxLength = this.getAttribute('maxlength');
+            countDisplay.innerText = `${currentLength}/${maxLength}`;
         };
 
         setTimeout(() => input.focus(), 300);
@@ -506,15 +525,26 @@ if (file_exists($imap_env_path)) {
         { text: '지하철 안이에요', action: () => { report.isInside = true; nextStep('place', '지하철 안인데'); } },
         { text: '지하철 밖이에요', action: () => { report.isInside = false; nextStep('place', '지하철 밖인데'); } }
       ],
-      2: [
-        { text: '잡상인이 있어요', action: () => handleSituationStep('잡상인이 있어요') },
-        { text: '싸움이 일어났어요', action: () => handleSituationStep('싸움이 일어났어요') },
-        { text: '온도 조절이 필요해요', action: () => handleSituationStep('온도 조절이 필요해요') },
-        { text: '소란을 피워요', action: () => handleSituationStep('소란을 피워요') },
-        { text: '청소가 필요해요', action: () => handleSituationStep('청소가 필요해요') },
-        { text: '시설물이 고장났어요', action: () => handleSituationStep('시설물이 고장났어요') },
-        { text: '직접 입력', action: () => handleSituationStep('직접 입력') }
-      ],
+      2: {
+        inside: [
+          { text: '잡상인이 있어요', action: () => handleSituationStep('잡상인이 있어요') },
+          { text: '싸움이 일어났어요', action: () => handleSituationStep('싸움이 일어났어요') },
+          { text: '온도 조절이 필요해요', action: () => handleSituationStep('온도 조절이 필요해요') },
+          { text: '소란을 피워요', action: () => handleSituationStep('소란을 피워요') },
+          { text: '청소가 필요해요', action: () => handleSituationStep('청소가 필요해요') },
+          { text: '시설물이 파손됐어요', action: () => handleSituationStep('시설물이 파손됐어요') },
+          { text: '직접 입력', action: () => handleSituationStep('직접 입력') }
+        ],
+        outside: [
+          { text: '구걸인이 있어요', action: () => handleSituationStep('구걸인이 있어요') },
+          { text: '싸움이 일어났어요', action: () => handleSituationStep('싸움이 일어났어요') },
+          { text: '이상한 냄새가 나요', action: () => handleSituationStep('온도 조절이 필요해요') },
+          { text: '소란을 피워요', action: () => handleSituationStep('소란을 피워요') },
+          { text: '청소가 필요해요', action: () => handleSituationStep('청소가 필요해요') },
+          { text: '시설물이 고장났어요', action: () => handleSituationStep('시설물이 고장났어요') },
+          { text: '직접 입력', action: () => handleSituationStep('직접 입력') }
+        ]
+      },
       3: [
         { text: '1호선', action: () => nextStep('line', '1호선') },
         { text: '2호선', action: () => nextStep('line', '2호선') },
@@ -533,11 +563,20 @@ if (file_exists($imap_env_path)) {
       ]
     };
 
+    // 버튼 구현 함수
     function renderButtons(step) {
       btnContainer.innerHTML = '';
-      if (step === 4 && report.isInside) return; 
+      if (step === 4 && report.isInside)
+        return;
 
-      stepButtons[step].forEach(btn => {
+      let currentButtons = [];
+      if (step === 2) {
+          currentButtons = report.isInside ? stepButtons[2].inside : stepButtons[2].outside;
+      } else {
+          currentButtons = stepButtons[step];
+      }
+
+      currentButtons.forEach(btn => {
         const b = document.createElement('button');
         b.className = 'nav-btn';
         b.innerText = btn.text;
