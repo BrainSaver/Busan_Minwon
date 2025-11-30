@@ -21,13 +21,55 @@ if (file_exists($imap_env_path)) {
     /* 기본 스타일 */
     body { margin: 0; background: #f8f9fb; font-family: "Pretendard", sans-serif; color: #222; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; overflow: hidden; }
     .sentence-box { background: #ffffff; margin: 12px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 20px; font-size: 1.1rem; text-align: center; color: #1e3a8a; min-height: 80px; line-height: 1.4; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; z-index: 5; }
-    .step { flex: 1; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; opacity: 0; transform: translateY(30px); transition: all 0.4s ease; width: 100%; box-sizing: border-box; }
+    .step { 
+        flex: 1; 
+        display: none; 
+        flex-direction: column; 
+        justify-content: flex-start; 
+        padding-top: 15vh; 
+        align-items: center; 
+        text-align: center; 
+        padding-left: 20px; 
+        padding-right: 20px;
+        opacity: 0; 
+        transform: translateY(30px); 
+        transition: all 0.4s ease; 
+        width: 100%; 
+        box-sizing: border-box; 
+    }
     .step.active { display: flex; opacity: 1; transform: translateY(0); }
-    h2 { font-size: 1.3rem; margin-bottom: 20px; }
+    h2 { 
+        font-size: 1.3rem; 
+        margin-bottom: 40px; 
+    }
     
     .btn-container { position: fixed; bottom: 0; left: 0; right: 0; display: flex; flex-wrap: wrap; justify-content: center; background: white; padding: 15px 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); border-radius: 16px 16px 0 0; gap: 10px; z-index: 10; }
     button.nav-btn { flex: 1 1 45%; background: #3b82f6; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; transition: transform 0.2s ease, background 0.3s ease; cursor: pointer; }
     button.nav-btn:active { transform: scale(0.96); background: #2563eb; }
+
+
+    /* 뒤로가기 버튼 */
+    .nav-btn-row {
+        width: 100%;
+        padding: 5px 10px 15px 10px; 
+        display: flex; /* Flexbox 적용 */
+        justify-content: space-between; /* 양쪽 끝으로 배치 */
+        align-items: center;
+    }
+    /* 텍스트형 버튼 공통 스타일 */
+    .nav-text-btn {
+        background: none;
+        border: none;
+        color: #555;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px;
+    }
+    .nav-text-btn:hover { color: #3b82f6; }
     
     /* 직접 입력 스타일 */
     
@@ -506,7 +548,8 @@ if (file_exists($imap_env_path)) {
         steps[currentStep - 1].classList.remove('active');
         detailStepEl.classList.add('active');
         detailTitle.innerText = "불편사항을 직접 적어주세요.";
-        btnContainer.innerHTML = '';
+
+        renderNavButtons(true); // true = sub-step 모드
         customInputArea.style.display = 'flex';
 
         const input = document.getElementById('customInput');
@@ -544,7 +587,8 @@ if (file_exists($imap_env_path)) {
         detailTitle.innerText = `"${situationText}"\n구체적으로 어떤가요?`;
         customInputArea.style.display = 'none';
 
-        btnContainer.innerHTML = '';
+        renderNavButtons(true); 
+
         const options = detailOptions[situationText];
         options.forEach(opt => {
             const b = document.createElement('button');
@@ -602,11 +646,83 @@ if (file_exists($imap_env_path)) {
       ]
     };
 
+    // 뒤로가기 로직 함수
+    function goBack() {
+        if (detailStepEl.classList.contains('active')) {
+            detailStepEl.classList.remove('active');
+            customInputArea.style.display = 'none'; 
+            steps[currentStep - 1].classList.add('active'); 
+            report.situation = ''; 
+            report.detailSituation = '';
+            updateSentenceBox();
+            renderButtons(currentStep); 
+            return;
+        }
+
+        if (currentStep === 1) {
+            location.href = 'first.php';
+            return;
+        }
+
+        steps[currentStep - 1].classList.remove('active');
+
+        if (currentStep === 4 && report.isInside) {
+            currentStep = 2; 
+            report.line = ''; 
+            report.detail = '';
+        } else {
+            currentStep--;
+
+            if (currentStep === 3) report.detail = ''; 
+            if (currentStep === 2) report.line = '';  
+            if (currentStep === 1) report.situation = ''; 
+        }
+
+        steps[currentStep - 1].classList.add('active');
+
+        if (currentStep !== 4) {
+            dialWrapper.style.display = 'none';
+            dialGuide.style.display = 'none';
+            dialSubmitBtn.style.display = 'none';
+            stationWrapper.style.display = 'none';
+            scrollGuide.style.display = 'none';
+        }
+
+        updateSentenceBox();
+        renderButtons(currentStep);
+    }
+
+    // 뒤로가기 버튼 렌더링 헬퍼 함수
+    function renderNavButtonss(isSubStep = false) {
+        btnContainer.innerHTML = ''; 
+        
+        const row = document.createElement('div');
+        row.className = 'nav-btn-row';
+        
+        const homeBtn = document.createElement('button');
+        homeBtn.className = 'nav-text-btn';
+        homeBtn.innerHTML = '🏠 홈으로';
+        homeBtn.onclick = () => location.href = 'first.php';
+        row.appendChild(homeBtn);
+
+        const backBtn = document.createElement('button');
+        backBtn.className = 'nav-text-btn';
+        backBtn.innerHTML = '뒤로 가기 ↩';
+        backBtn.onclick = goBack;
+        row.appendChild(backBtn);
+        
+        btnContainer.appendChild(row);
+    }
+
+
     // 버튼 구현 함수
     function renderButtons(step) {
-      btnContainer.innerHTML = '';
-      if (step === 4 && report.isInside)
-        return;
+      if (step === 4 && report.isInside) {
+          renderNavButtonss(); 
+          return;
+      }
+
+      renderNavButtonss(); 
 
       let currentButtons = [];
       if (step === 2) {
@@ -675,8 +791,8 @@ if (file_exists($imap_env_path)) {
 
         if (currentStep === 4) {
             if (report.isInside) {
-                step4Title.innerText = "호선과 차량 번호를 맞춰주세요";
-                
+                step4Title.innerText = "호선과 차량 번호를 맞춰주세요.";
+
                 dialWrapper.style.display = 'flex';
                 dialGuide.style.display = 'block';
                 dialSubmitBtn.style.display = 'block';
@@ -687,7 +803,9 @@ if (file_exists($imap_env_path)) {
                 const initialLineNum = parseInt(report.line.replace('호선','')) || 1;
                 initDials(initialLineNum);
             } else {
+                step4Title.style.display = 'block';
                 step4Title.innerText = "현재 무슨 역에 계신가요?";
+                
                 dialWrapper.style.display = 'none';
                 dialGuide.style.display = 'none';
                 dialSubmitBtn.style.display = 'none';
