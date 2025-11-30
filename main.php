@@ -693,7 +693,7 @@ if (file_exists($imap_env_path)) {
     }
 
     // 뒤로가기 버튼 렌더링 헬퍼 함수
-    function renderNavButtonss(isSubStep = false) {
+    function renderNavButtons(isSubStep = false) {
         btnContainer.innerHTML = ''; 
         
         const row = document.createElement('div');
@@ -718,11 +718,11 @@ if (file_exists($imap_env_path)) {
     // 버튼 구현 함수
     function renderButtons(step) {
       if (step === 4 && report.isInside) {
-          renderNavButtonss(); 
+          renderNavButtons(); 
           return;
       }
 
-      renderNavButtonss(); 
+      renderNavButtons(); 
 
       let currentButtons = [];
       if (step === 2) {
