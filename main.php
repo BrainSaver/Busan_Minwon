@@ -291,17 +291,18 @@ if (file_exists($imap_env_path)) {
     };
 
     const detailOptions = {
+      // 지하철 안이에요
         '온도 조절이 필요해요': [ 
             { text: '더워요', val: '더워요' }, 
             { text: '추워요', val: '추워요' } 
         ],
-        '소란을 피워요': [
+        '민폐를 끼쳐요': [
+            { text: '위협을 해요', val: '위협을 해요' },
+            { text: '욕설을 해요', val: '욕설을 해요' },
             { text: '구걸을 해요', val: '구걸을 해요' },
             { text: '종교 권유를 해요', val: '종교 권유를 해요' },
-            { text: '전단지를 돌려요', val: '전단지를 돌려요' },
-            { text: '욕설을 해요', val: '욕설을 해요' },
             { text: '시끄럽게 떠들어요', val: '시끄럽게 떠들어요' },
-            { text: '음식을 먹고 있어요', val: '음식을 먹고 있어요' },
+            { text: '음식물을 먹어요', val: '음식물을 먹어요' },
             { text: '빈좌석을 못쓰게 해요', val: '빈좌석을 못쓰게 해요' },
             { text: '의자에 누워있어요', val: '의자에 누워있어요' }
         ],
@@ -316,11 +317,49 @@ if (file_exists($imap_env_path)) {
         '시설물이 파손됐어요': [
             { text: '의자가 파손됐어요', val: '의자가 파손됐어요' },
             { text: '손잡이가 파손됐어요', val: '손잡이가 파손됐어요' },
-            { text: '유리창이 깨졌어요', val: '유리창이 깨졌어요' },
+            { text: '유리창이 깨져있어요', val: '유리창이 깨져있어요' },
             { text: '방송 스피커가 고장났어요', val: '방송 스피커가 고장났어요' },
             { text: '안내판이 고장났어요', val: '안내판이 고장났어요' },
             { text: '조명이 고장났어요', val: '조명이 고장났어요' }
-        ]
+        ],
+        //지하철 밖이에요
+        '소란을 피워요': [
+            { text: '싸움이 일어났어요', val: '싸움이 일어났어요' },
+            { text: '위협을 해요', val: '위협을 해요' },
+            { text: '욕설을 해요', val: '욕설을 해요' },
+            { text: '종교 권유를 해요', val: '종교 권유를 해요' },
+            { text: '전단지를 돌려요', val: '전단지를 돌려요' },
+            { text: '연설을 해요', val: '연설을 해요' },
+            { text: '의자에 누워있어요', val: '의자에 누워있어요' }
+        ],
+        '청소가 안돼있어요': [
+            { text: '광고지가 붙어있어요', val: '광고지가 붙어있어요' },
+            { text: '쓰레기통이 넘쳐요', val: '쓰레기통이 넘쳐요' },
+            { text: '바닥에 쓰레기가 많아요', val: '바닥에 쓰레기가 많아요' },
+            { text: '바닥에 액체가 흘렀어요', val: '바닥에 액체가 흘렀어요' },
+            { text: '의자가 더러워요', val: '의자가 더러워요' },
+            { text: '벽이 더러워요', val: '벽이 더러워요' }
+        ],
+        '시설물이 고장났어요': [
+            { text: '개찰구가 고장났어요', val: '개찰구가 고장났어요' },
+            { text: '에스컬레이터가 고장났어요', val: '에스컬레이터가 고장났어요' },
+            { text: '엘리베이터가 고장났어요', val: '엘리베이터가 고장났어요' },
+            { text: '계단이 깨져있어요', val: '계단이 깨져있어요' },
+            { text: '발매기/충전기가 고장났어요', val: '발매기/충전기가 고장났어요' },
+            { text: '보관함이 고장났어요', val: '보관함이 고장났어요' },
+            { text: '자판기가 고장났어요', val: '자판기가 고장났어요' },
+            { text: '유리창이 깨져있어요', val: '유리창이 깨져있어요' },
+            { text: '안내판이 고장났어요', val: '안내판이 고장났어요' },
+            { text: '조명이 고장났어요', val: '조명이 고장났어요' }
+        ],
+        '화장실에 문제가 있어요': [
+            { text: '청소가 필요해요(남자)', val: '청소가 필요해요(남자)' },
+            { text: '청소가 필요해요(여자)', val: '청소가 필요해요(여자)' },
+            { text: '시설이 고장났어요(남자)', val: '시설이 고장났어요(남자)' },
+            { text: '시설이 고장났어요(여자)', val: '시설이 고장났어요(여자)' },
+            { text: '휴지가 없어요(남자)', val: '휴지가 없어요(남자)' },
+            { text: '휴지가 없어요(여자)', val: '휴지가 없어요(여자)' }
+        ],
     };
 
     function openHelp() { document.getElementById("help-modal").style.display = "flex"; }
@@ -530,18 +569,18 @@ if (file_exists($imap_env_path)) {
           { text: '잡상인이 있어요', action: () => handleSituationStep('잡상인이 있어요') },
           { text: '싸움이 일어났어요', action: () => handleSituationStep('싸움이 일어났어요') },
           { text: '온도 조절이 필요해요', action: () => handleSituationStep('온도 조절이 필요해요') },
-          { text: '소란을 피워요', action: () => handleSituationStep('소란을 피워요') },
+          { text: '민폐를 끼쳐요', action: () => handleSituationStep('민폐를 끼쳐요') },
           { text: '청소가 필요해요', action: () => handleSituationStep('청소가 필요해요') },
           { text: '시설물이 파손됐어요', action: () => handleSituationStep('시설물이 파손됐어요') },
           { text: '직접 입력', action: () => handleSituationStep('직접 입력') }
         ],
         outside: [
-          { text: '구걸인이 있어요', action: () => handleSituationStep('구걸인이 있어요') },
-          { text: '싸움이 일어났어요', action: () => handleSituationStep('싸움이 일어났어요') },
-          { text: '이상한 냄새가 나요', action: () => handleSituationStep('온도 조절이 필요해요') },
+          { text: '구걸인/노숙인이 있어요', action: () => handleSituationStep('구걸인/노숙인이 있어요') },
+          { text: '무임승차를 봤어요', action: () => handleSituationStep('무임승차를 봤어요') },
           { text: '소란을 피워요', action: () => handleSituationStep('소란을 피워요') },
-          { text: '청소가 필요해요', action: () => handleSituationStep('청소가 필요해요') },
+          { text: '청소가 안돼있어요', action: () => handleSituationStep('청소가 안돼있어요') },
           { text: '시설물이 고장났어요', action: () => handleSituationStep('시설물이 고장났어요') },
+          { text: '화장실에 문제가 있어요', action: () => handleSituationStep('화장실에 문제가 있어요') },
           { text: '직접 입력', action: () => handleSituationStep('직접 입력') }
         ]
       },
