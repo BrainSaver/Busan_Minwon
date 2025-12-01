@@ -278,8 +278,8 @@ if (file_exists($imap_env_path)) {
     <h2 id="detail-title">더 자세한 내용을 알려주세요</h2>
 
     <div id="customInputArea">
-        <textarea id="customInput" rows="1" maxlength="200" placeholder="여기를 눌러서 입력해주세요"></textarea>
-        <div id="charCount">0/200</div>
+        <textarea id="customInput" rows="1" maxlength="100" placeholder="여기를 눌러서 입력해주세요"></textarea>
+        <div id="charCount">0/100</div>
         <button class="input-confirm-btn" onclick="submitCustomInput()">입력 완료</button>
     </div>
   </div>
@@ -607,7 +607,7 @@ if (file_exists($imap_env_path)) {
         const countDisplay = document.getElementById('charCount');
         input.value = '';
         input.style.height = 'auto';
-        countDisplay.innerText = "0/200";
+        countDisplay.innerText = "0/100";
 
         // 내용 입력 시 높이 자동 조절 로직
         input.oninput = function() {
@@ -697,14 +697,16 @@ if (file_exists($imap_env_path)) {
       ]
     };
 
-    // 뒤로가기 로직 함수
+    // 뒤로가기 함수
     function goBack() {
         if (detailStepEl.classList.contains('active')) {
             detailStepEl.classList.remove('active');
             customInputArea.style.display = 'none'; 
             steps[currentStep - 1].classList.add('active'); 
+            
             report.situation = ''; 
             report.detailSituation = '';
+            
             updateSentenceBox();
             renderButtons(currentStep); 
             return;
@@ -717,19 +719,17 @@ if (file_exists($imap_env_path)) {
 
         steps[currentStep - 1].classList.remove('active');
 
+        // '지하철 안'일 때
         if (currentStep === 4 && report.isInside) {
             currentStep = 2; 
-            report.line = ''; 
-            report.detail = '';
         } else {
             currentStep--;
-
-            if (currentStep === 3) report.detail = ''; 
-            if (currentStep === 2) report.line = '';  
-            if (currentStep === 1) report.situation = ''; 
         }
 
         steps[currentStep - 1].classList.add('active');
+
+        // 돌아온 단계에 맞춰 초기화
+        resetReportData(currentStep);
 
         if (currentStep !== 4) {
             dialWrapper.style.display = 'none';
@@ -741,6 +741,26 @@ if (file_exists($imap_env_path)) {
 
         updateSentenceBox();
         renderButtons(currentStep);
+    }
+
+    // 단계별 데이터 초기화 함수
+    function resetReportData(step) {
+        if (step <= 4) {
+            report.detail = ''; 
+        }
+        
+        if (step <= 3) {
+            report.line = '';   
+        }
+        
+        if (step <= 2) {
+            report.situation = '';
+            report.detailSituation = ''; 
+        }
+
+        if (step <= 1) {
+            report.place = '';
+        }
     }
 
     // 뒤로가기 버튼 렌더링 헬퍼 함수
