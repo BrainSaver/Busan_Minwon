@@ -19,32 +19,86 @@ if (file_exists($imap_env_path)) {
 
   <style>
     /* 기본 스타일 */
-    body { margin: 0; background: #f8f9fb; font-family: "Pretendard", sans-serif; color: #222; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; overflow: hidden; }
-    .sentence-box { background: #ffffff; margin: 12px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 20px; font-size: 1.1rem; text-align: center; color: #1e3a8a; min-height: 80px; line-height: 1.4; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; z-index: 5; }
+    body { 
+        margin: 0; 
+        background: #f8f9fb; 
+        font-family: "Pretendard", sans-serif; 
+        color: #222; 
+        
+        display: flex; 
+        flex-direction: column; 
+        height: 100vh;
+        overflow: hidden; /* 페이지 전체 스크롤 방지 */
+    }
+
+    /* 상단 문장 박스 */
+    .sentence-box { 
+        flex-shrink: 0; 
+        background: #ffffff; margin: 12px; border-radius: 14px; 
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 15px; 
+        font-size: 1.1rem; text-align: center; color: #1e3a8a; 
+        min-height: 70px; line-height: 1.4; 
+        display: flex; align-items: center; justify-content: center; z-index: 5; 
+    }
+
+    /* 중앙 스텝 영역 */
     .step { 
         flex: 1; 
         display: none; 
         flex-direction: column; 
-        justify-content: flex-start; 
-        padding-top: 15vh; 
+        justify-content: center;
         align-items: center; 
         text-align: center; 
-        padding-left: 20px; 
-        padding-right: 20px;
+        padding: 0 20px;
+        width: 100%; 
+        box-sizing: border-box; 
         opacity: 0; 
         transform: translateY(30px); 
         transition: all 0.4s ease; 
-        width: 100%; 
-        box-sizing: border-box; 
+        
+        overflow-y: auto; 
+        -ms-overflow-style: none; 
+        scrollbar-width: none; 
     }
+    .step::-webkit-scrollbar { display: none; }
     .step.active { display: flex; opacity: 1; transform: translateY(0); }
     h2 { 
         font-size: 1.3rem; 
-        margin-bottom: 40px; 
+        margin-bottom: 30px; 
+        flex-shrink: 0;
     }
     
-    .btn-container { position: fixed; bottom: 0; left: 0; right: 0; display: flex; flex-wrap: wrap; justify-content: center; background: white; padding: 15px 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); border-radius: 16px 16px 0 0; gap: 10px; z-index: 10; }
-    button.nav-btn { flex: 1 1 45%; background: #3b82f6; color: white; border: none; padding: 14px; border-radius: 10px; font-size: 16px; transition: transform 0.2s ease, background 0.3s ease; cursor: pointer; }
+    /* 하단 버튼 컨테이너 */
+    .btn-container { 
+        flex-shrink: 0;
+        position: relative;
+        background: white; 
+        padding: 10px 10px 20px 10px; 
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1); 
+        border-radius: 16px 16px 0 0; 
+        display: flex; 
+        flex-wrap: wrap; 
+        justify-content: center; 
+        gap: 10px; 
+        z-index: 10; 
+        width: 100%;
+        box-sizing: border-box;
+    }
+    button.nav-btn { 
+        flex: 1 1 45%; 
+        background: #3b82f6; 
+        color: white; 
+        border: none; 
+        padding: 14px 2px; 
+        border-radius: 10px; 
+        font-size: 15px; 
+        transition: transform 0.2s ease, background 0.3s ease; 
+        cursor: pointer; 
+        
+        /* 줄바꿈 방지 */
+        white-space: nowrap; 
+        letter-spacing: -0.5px; 
+    }
     button.nav-btn:active { transform: scale(0.96); background: #2563eb; }
 
 
@@ -53,9 +107,10 @@ if (file_exists($imap_env_path)) {
         width: 100%;
         padding: 5px 10px 15px 10px; 
         display: flex; /* Flexbox 적용 */
-        justify-content: space-between; /* 양쪽 끝으로 배치 */
+        justify-content: space-between; 
         align-items: center;
     }
+
     /* 텍스트형 버튼 공통 스타일 */
     .nav-text-btn {
         background: none;
@@ -72,7 +127,6 @@ if (file_exists($imap_env_path)) {
     .nav-text-btn:hover { color: #3b82f6; }
     
     /* 직접 입력 스타일 */
-    
     #customInputArea {
         width: 100%; max-width: 350px; display: none; flex-direction: column; gap: 15px;
     }
@@ -107,24 +161,18 @@ if (file_exists($imap_env_path)) {
         width: 100%; padding: 15px; background: #3b82f6; color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
     }
 
-    /* --------------------------------------------------- */
-    /* [수정] 다이얼(Spinner) 스타일 */
-    /* --------------------------------------------------- */
+    /* 다이얼(Spinner) 스타일 */
     .dial-wrapper {
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        max-width: 380px; /* 폭을 약간 늘림 */
-        height: 160px;
-        background: #fff;
-        border-radius: 15px;
+        position: relative; display: flex; justify-content: center; align-items: center;
+        width: 100%; max-width: 380px; height: 160px;
+        background: #fff; border-radius: 15px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        overflow: hidden;
+        overflow: hidden; 
         margin-bottom: 20px;
-        user-select: none; 
-        -webkit-user-select: none;
+        user-select: none; -webkit-user-select: none;
+        flex-shrink: 0;
+        overscroll-behavior: contain; 
+        touch-action: pan-y; 
     }
 
     .dial-highlight {
@@ -188,6 +236,9 @@ if (file_exists($imap_env_path)) {
         cursor: pointer;
         box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
         transition: transform 0.2s;
+
+        margin-bottom: 20px; 
+        flex-shrink: 0;
     }
     .btn-send-dial:active { transform: scale(0.98); }
 
