@@ -19,7 +19,7 @@ if (file_exists($imap_env_path)) {
 
   <style>
     /* -------------------------------------------
-       1. CSS 변수 설정
+       1. CSS 변수 설정 (사용자 지정 고정)
     ------------------------------------------- */
     :root {
         --primary-color: #3b82f6;
@@ -85,7 +85,7 @@ if (file_exists($imap_env_path)) {
     
     button.nav-btn { 
         width: 100%; min-height: 80px;
-        background: #ffffffff; color: #333; 
+        background: #ffffff; color: #333; 
         border: 2px solid var(--border-color); 
         border-radius: 20px; font-size: 1.3rem; font-weight: 700;
         cursor: pointer; box-shadow: 0 6px 0px var(--border-color);
@@ -259,16 +259,9 @@ if (file_exists($imap_env_path)) {
 
           <div class="dial-wrapper" id="dialWrapper" style="display:none;">
               <div class="dial-highlight"></div>
-              
-              <div class="dial-column" id="dialLine"></div>
-              <div class="dial-label">호선</div>
-              
-              <div class="dial-column" id="dial1"></div>
-              <div class="dial-column" id="dial2"></div>
-              <div class="dial-label">편성</div>
-              
-              <div class="dial-column" id="dial3"></div>
-              <div class="dial-label">호차</div>
+              <div class="dial-column" id="dialLine"></div><div class="dial-label">호선</div>
+              <div class="dial-column" id="dial1"></div><div class="dial-column" id="dial2"></div><div class="dial-label">편성</div>
+              <div class="dial-column" id="dial3"></div><div class="dial-label">호차</div>
           </div>
 
           <div class="station-scroll-wrapper" id="stationWrapper">
@@ -335,7 +328,7 @@ if (file_exists($imap_env_path)) {
     let report = { place: '', situation: '', detailSituation: '', line: '', detail: '', isInside: true };
     let dialValues = { line: 1, d1: 0, d2: 0, d3: 1 };
     
-    // [중요] 다이얼 높이 상수 (CSS와 일치해야 함)
+    // CSS 변수와 일치 (중요)
     const DIAL_ITEM_HEIGHT = 60; 
 
     const stepButtons = {
@@ -362,7 +355,7 @@ if (file_exists($imap_env_path)) {
                 ? (report.detailSituation ? report.detailSituation + ' ' : '') 
                 : (report.situation + (report.detailSituation ? `(${report.detailSituation})` : '') + ' '); 
         }
-        if (report.line) sentence += '\n' + report.line + ' ';
+        if (report.line) sentence += '지금 ' + report.line + ' ';
         if (report.detail) sentence += report.detail;
         return sentence.trim();
     }
@@ -476,14 +469,10 @@ if (file_exists($imap_env_path)) {
         els.btnContainer.appendChild(fragment);
     }
 
-    // ----------------------------------------------------
-    // 다이얼(Picker) 로직 수정됨: 60px 단위 정렬
-    // ----------------------------------------------------
     function createDial(elementId, start, end, initialVal) {
         const container = document.getElementById(elementId);
         container.innerHTML = '';
         
-        // 스페이서 높이를 정확히 60px로 설정 (중앙 정렬 핵심)
         const spacer = document.createElement('div');
         spacer.style.height = `${DIAL_ITEM_HEIGHT}px`; 
         spacer.style.flexShrink = '0';
@@ -499,7 +488,6 @@ if (file_exists($imap_env_path)) {
         }
         container.appendChild(fragment);
         
-        // 하단 스페이서도 60px
         const spacerBottom = spacer.cloneNode(true);
         container.appendChild(spacerBottom);
 
@@ -509,7 +497,6 @@ if (file_exists($imap_env_path)) {
             const items = container.querySelectorAll('.dial-item');
             for (let i = 0; i < items.length; i++) {
                 if(parseInt(items[i].innerText) == initialVal) {
-                    // 항목 인덱스 * 높이 = 스크롤 위치 (스페이서 때문에 0번 인덱스가 0위치가 됨)
                     container.scrollTop = i * DIAL_ITEM_HEIGHT; 
                     break;
                 }
@@ -526,7 +513,6 @@ if (file_exists($imap_env_path)) {
     }
 
     function updateActiveItem(container, dialId) {
-        // 스크롤 위치 / 항목 높이(60) = 현재 인덱스
         let index = Math.round(container.scrollTop / DIAL_ITEM_HEIGHT);
         
         const items = container.querySelectorAll('.dial-item');
@@ -555,7 +541,83 @@ if (file_exists($imap_env_path)) {
         report.detail = `${dialValues.d1}${dialValues.d2}편성 ${dialValues.d3}호차`;
     }
     
-    function submitDialData() { updateReportDetailFromDial(); submitFinal(); }
+    // [중요] 8자리 16진수 코드 생성
+    function generateReceiptCode() {
+        return Array.from({length: 8}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    }
+
+    // ----------------------------------------------------
+    // [핵심] 클립보드 복사 함수 (강력한 호환성)
+    // ----------------------------------------------------
+    function copyToClipboard(text) {
+        // 1. 최신 방식 (navigator.clipboard)
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).catch(err => {
+                // 실패 시 구형 방식 시도
+                fallbackCopyTextToClipboard(text);
+            });
+        } else {
+            // 2. 구형 방식 (execCommand)
+            fallbackCopyTextToClipboard(text);
+        }
+    }
+
+    function fallbackCopyTextToClipboard(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        
+        // 화면 밖으로 숨김
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            document.execCommand('copy');
+        } catch (err) {
+            console.error('Fallback copy failed', err);
+        }
+
+        document.body.removeChild(textArea);
+    }
+
+    // ----------------------------------------------------
+    // [수정됨] 제출 로직: 전송 -> 복사(알림) -> 문자창
+    // ----------------------------------------------------
+    function submitDialData() { 
+        updateReportDetailFromDial(); 
+        
+        const code = generateReceiptCode();
+        let finalSentence = makeSentence();
+        
+        let displaySentence = finalSentence + `\n\n[접수코드: ${code}]`;
+        els.sentenceBox.innerText = displaySentence;
+
+        if(!confirm("신고 내용을 전송하시겠습니까?")) return;
+
+        // 1. 서버 전송
+        const targetEmail = "<?= isset($myEmail) ? $myEmail : 'busanminwon@gmail.com' ?>"; 
+        fetch('save_report.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                content: finalSentence,
+                token: code 
+            }) 
+        }).catch(err => console.error(err));
+
+        // 2. 접수 코드 클립보드 복사 & 알림
+        copyToClipboard(code);
+        alert(`접수코드(${code})가 복사되었습니다.\n잠시 후 문자 앱이 열리면 붙여넣기 할 필요 없이 바로 전송하세요.`);
+
+        // 3. 문자 전송 창 열기
+        const encodedBody = encodeURIComponent(displaySentence);
+        const separator = navigator.userAgent.match(/iPhone/i) ? "&" : "?";
+        location.href = "sms:" + targetEmail + separator + "body=" + encodedBody;
+    }
 
     function renderStationList(lineName) {
         els.stationList.innerHTML = '';
@@ -568,8 +630,34 @@ if (file_exists($imap_env_path)) {
                 const prev = document.querySelectorAll('.station-chip.selected');
                 prev.forEach(p => p.classList.remove('selected'));
                 chip.classList.add('selected');
+                
                 report.detail = station + '역에 있어요';
-                submitFinal();
+                
+                const code = generateReceiptCode();
+                let finalSentence = makeSentence();
+                
+                let displaySentence = finalSentence + `\n\n[접수코드: ${code}]`;
+                els.sentenceBox.innerText = displaySentence;
+
+                if(!confirm("신고 내용을 전송하시겠습니까?")) return;
+
+                const targetEmail = "<?= isset($myEmail) ? $myEmail : 'busanminwon@gmail.com' ?>"; 
+                fetch('save_report.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        content: finalSentence,
+                        token: code 
+                    })
+                }).catch(err => console.error(err));
+
+                // 복사 및 알림
+                copyToClipboard(code);
+                alert(`접수코드(${code})가 복사되었습니다.`);
+
+                const encodedBody = encodeURIComponent(displaySentence);
+                const separator = navigator.userAgent.match(/iPhone/i) ? "&" : "?";
+                location.href = "sms:" + targetEmail + separator + "body=" + encodedBody;
             };
             fragment.appendChild(chip);
         });
