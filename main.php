@@ -19,7 +19,7 @@ if (file_exists($imap_env_path)) {
 
   <style>
     /* -------------------------------------------
-       1. CSS 변수 설정 (사용자 지정 고정)
+       1. CSS 변수 설정
     ------------------------------------------- */
     :root {
         --primary-color: #3b82f6;
@@ -28,10 +28,8 @@ if (file_exists($imap_env_path)) {
         --text-main: #222;
         --border-color: #e5e7eb;
         
-        /* [중요] 다이얼 크기 계산 변수 */
-        /* 항목 하나의 높이 (파란 박스 높이) */
+        /* 다이얼 크기 변수 */
         --dial-item-height: 60px; 
-        /* 전체 다이얼 박스 높이 (항목 3개가 딱 보이는 높이: 60 * 3) */
         --dial-container-height: 180px; 
     }
 
@@ -101,35 +99,33 @@ if (file_exists($imap_env_path)) {
     .input-confirm-btn { width: 100%; padding: 18px; background: var(--primary-color); color: white; border: none; border-radius: 16px; font-size: 1.3rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4); }
 
     /* -------------------------------------------
-       4. 다이얼(Picker) 스타일 [수정됨]
+       4. 다이얼(Picker) 스타일
     ------------------------------------------- */
     .step-special-content { width: 100%; display: none; flex-direction: column; flex: 1; }
 
+    /* 공통 다이얼 래퍼 */
     .dial-wrapper { 
         position: relative; display: flex; justify-content: center; 
         width: 100%; 
-        height: var(--dial-container-height); /* 180px */
+        height: var(--dial-container-height); 
         background: #ffffff; border-radius: 24px; 
         overflow: hidden; margin-bottom: 20px; 
         user-select: none; border: 2px solid #f1f3f5; 
     }
 
-    /* 중앙 파란 박스 (하이라이트) */
+    /* 다이얼 하이라이트바 */
     .dial-highlight { 
         position: absolute; 
         top: 50%; left: 0; width: 100%; 
-        /* 높이 60px */
         height: var(--dial-item-height); 
-        /* 중앙 정렬을 위해 높이의 절반만큼 올림 */
         margin-top: calc(var(--dial-item-height) / -2); 
-        
-        /* 디자인: 연한 파란 배경 + 위아래 진한 파란 선 */
         background-color: rgba(59, 130, 246, 0.08); 
         border-top: 2px solid var(--primary-color); 
         border-bottom: 2px solid var(--primary-color); 
         pointer-events: none; z-index: 1; 
     }
 
+    /* 기존(열차번호) 다이얼 컬럼 */
     .dial-column { 
         height: 100%; width: 60px; 
         overflow-y: scroll; 
@@ -139,104 +135,80 @@ if (file_exists($imap_env_path)) {
     }
     
     .dial-item { 
-        height: var(--dial-item-height); /* 60px */
+        height: var(--dial-item-height); 
         display: flex; align-items: center; justify-content: center; 
         font-size: 26px; color: #ccc; 
-        scroll-snap-align: center; /* 스크롤이 딱 멈추게 */
+        scroll-snap-align: center; 
     }
     
     .dial-item.active { 
-        color: #222; 
-        font-weight: bold; 
-        font-size: 34px; 
-        transform: scale(1.1); 
+        color: #222; font-weight: bold; 
+        font-size: 34px; transform: scale(1.1); 
     }
+
     .dial-label { 
-        font-size: 20px; 
-        font-weight: bold; 
-        color: #333;
-        margin: 0 5px; 
-        z-index: 2; 
-        padding-bottom: 3px; 
-        display:flex; 
-        align-items:center;
+        font-size: 20px; font-weight: bold; color: #333;
+        margin: 0 5px; z-index: 2; padding-bottom: 3px; 
+        display:flex; align-items:center;
+    }
+
+    /* [신규] 역 선택 다이얼 전용 스타일 */
+    .station-dial-column {
+        height: 100%; 
+        flex: 1; /* 50% 너비 차지 */
+        overflow-y: scroll; 
+        scroll-snap-type: y mandatory; 
+        -ms-overflow-style: none; scrollbar-width: none; 
+        z-index: 2; padding: 0;
+        border-right: 1px solid #eee; /* 구분선 */
+    }
+    .station-dial-column:last-child { border-right: none; }
+
+    .station-dial-item {
+        height: var(--dial-item-height); 
+        display: flex; align-items: center; justify-content: center; 
+        font-size: 18px; /* 역이름은 기니까 글자 작게 */
+        color: #ccc; 
+        scroll-snap-align: center; 
+        white-space: nowrap;
+    }
+    .station-dial-item.active {
+        color: #222; font-weight: bold; 
+        font-size: 22px; /* 선택시 커짐 */
+        transform: scale(1.05);
+    }
+    /* 역 범위 라벨 */
+    .station-range-label {
+        position: absolute; top: 0; width: 50%; height: 30px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 13px; color: #666; font-weight: bold; background: #fff;
+        z-index: 10; border-bottom: 1px solid #eee;
     }
 
     .btn-send-dial { 
-        width: 100%; 
-        padding: 20px; 
-        background: #ff6b6b; 
-        color: white; 
-        border: none; 
-        border-radius: 16px; 
-        font-size: 1.4rem; 
-        font-weight: bold; 
+        width: 100%; padding: 20px; 
+        background: #ff6b6b; color: white; 
+        border: none; border-radius: 16px; 
+        font-size: 1.4rem; font-weight: bold; 
         cursor: pointer; 
         box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4); 
-        margin-top: auto; 
-        margin-bottom: 120px; 
-    }
-
-    /* 역 선택 칩 */
-    .station-scroll-wrapper { 
-        width: 100%; 
-        overflow-x: auto; 
-        display: none; 
-        padding: 15px 0; 
-        scrollbar-width: none;
-        margin-bottom: 10px; 
-    }
-    .station-container { 
-        display: inline-flex; 
-        gap: 10px; 
-        padding: 0 5px; 
-    }
-    .station-chip { 
-        background: #ffffff; 
-        border: 2px solid var(--border-color); 
-        border-radius: 25px; 
-        padding: 15px 25px;
-        white-space: nowrap; 
-        color: #555; 
-        font-size: 1.1rem; 
-        font-weight: 600; 
-        cursor: pointer; 
-    }
-    .station-chip.selected { 
-        background: var(--primary-color); 
-        color: white;
-        border-color: var(--primary-color); 
-        box-shadow: 0 4px 10px rgba(59,130,246,0.3); 
-        transform: scale(1.05); 
+        margin-top: auto; margin-bottom: 120px; 
     }
 
     /* 모달 */
     #help-modal { 
-        display: none; 
-        position: fixed; 
-        top: 0; 
-        left: 0; 
-        width: 100%; 
-        height: 100%; 
+        display: none; position: fixed; 
+        top: 0; left: 0; width: 100%; height: 100%; 
         background: rgba(0,0,0,0.85); 
         z-index: 1000; 
-        flex-direction: column; 
-        justify-content: center; 
-        align-items: center; 
+        flex-direction: column; justify-content: center; align-items: center; 
     }
     .help-content { 
-        background: white; 
-        padding: 25px; 
-        border-radius: 20px; 
-        width: 85%; 
-        max-width: 350px; 
+        background: white; padding: 25px; 
+        border-radius: 20px; width: 85%; max-width: 350px; 
         text-align: center; 
     }
-    .help-content img { 
-        width: 100%; 
-        border-radius: 10px; 
-        margin-bottom: 20px; 
-    }
+    .help-content img { width: 100%; border-radius: 10px; margin-bottom: 20px; }
   </style>
 </head>
 <body>
@@ -252,6 +224,7 @@ if (file_exists($imap_env_path)) {
       </div>
 
       <div id="step4-content" class="step-special-content">
+          
           <div class="guide" id="dial-guide" style="display:none; font-size: 15px; color: #555; margin-bottom: 15px; text-align:center;">
               위아래로 드래그하여 번호를 맞춰주세요.<br>
               <button onclick="openHelp()" style="background:none; border:none; color:var(--primary-color); text-decoration:underline; cursor:pointer; margin-top:8px; font-size: 14px; font-weight: bold;">📷 번호가 어디 있나요?</button>
@@ -264,10 +237,13 @@ if (file_exists($imap_env_path)) {
               <div class="dial-column" id="dial3"></div><div class="dial-label">호차</div>
           </div>
 
-          <div class="station-scroll-wrapper" id="stationWrapper">
-            <div class="station-container" id="stationList"></div>
+          <div class="dial-wrapper" id="stationDialWrapper" style="display:none;">
+             <div class="dial-highlight"></div> <div id="labelLeft" class="station-range-label" style="left:0;"></div>
+             <div id="labelRight" class="station-range-label" style="right:0;"></div>
+
+             <div class="station-dial-column" id="stationDialLeft"></div>
+             <div class="station-dial-column" id="stationDialRight"></div>
           </div>
-          <p id="scroll-guide" style="font-size:0.9rem; color:#888; margin-top:5px; display:none; text-align:center;">⬅️ 좌우로 밀어서 역을 선택하세요 ➡️</p>
 
           <button class="btn-send-dial" id="dialSubmitBtn" style="display:none;" onclick="submitDialData()">🚀 신고 전송하기</button>
       </div>
@@ -315,10 +291,10 @@ if (file_exists($imap_env_path)) {
         customInput: document.getElementById('customInput'),
         charCount: document.getElementById('charCount'),
         step4Content: document.getElementById('step4-content'),
-        stationWrapper: document.getElementById('stationWrapper'),
-        stationList: document.getElementById('stationList'),
-        scrollGuide: document.getElementById('scroll-guide'),
+        
+        // 다이얼 관련 요소
         dialWrapper: document.getElementById('dialWrapper'),
+        stationDialWrapper: document.getElementById('stationDialWrapper'), // 신규
         dialGuide: document.getElementById('dial-guide'),
         dialSubmitBtn: document.getElementById('dialSubmitBtn'),
         modal: document.getElementById('help-modal')
@@ -394,20 +370,21 @@ if (file_exists($imap_env_path)) {
 
         if (step === 4) {
             els.step4Content.style.display = 'flex';
+            // 공통: 전송 버튼 보이기
+            els.dialSubmitBtn.style.display = 'block';
+
             if (report.isInside) {
+                // 내부: 열차 번호 다이얼
                 els.dialWrapper.style.display = 'flex';
                 els.dialGuide.style.display = 'block';
-                els.dialSubmitBtn.style.display = 'block';
-                els.stationWrapper.style.display = 'none';
-                els.scrollGuide.style.display = 'none';
+                els.stationDialWrapper.style.display = 'none';
                 initDials(parseInt(report.line.replace('호선', '')) || 1);
             } else {
+                // 외부: 역 선택 다이얼 (수정됨)
                 els.dialWrapper.style.display = 'none';
                 els.dialGuide.style.display = 'none';
-                els.dialSubmitBtn.style.display = 'none';
-                els.stationWrapper.style.display = 'block';
-                els.scrollGuide.style.display = 'block';
-                renderStationList(report.line);
+                els.stationDialWrapper.style.display = 'flex';
+                renderStationDials(report.line); // 역 다이얼 렌더링 함수 호출
             }
         } else {
             renderButtons(step);
@@ -469,6 +446,9 @@ if (file_exists($imap_env_path)) {
         els.btnContainer.appendChild(fragment);
     }
 
+    // ----------------------------------------------------------------
+    // [다이얼 로직 1] 숫자 다이얼 (열차 번호용)
+    // ----------------------------------------------------------------
     function createDial(elementId, start, end, initialVal) {
         const container = document.getElementById(elementId);
         container.innerHTML = '';
@@ -514,7 +494,6 @@ if (file_exists($imap_env_path)) {
 
     function updateActiveItem(container, dialId) {
         let index = Math.round(container.scrollTop / DIAL_ITEM_HEIGHT);
-        
         const items = container.querySelectorAll('.dial-item');
         if (index < 0) index = 0;
         if (index >= items.length) index = items.length - 1;
@@ -537,27 +516,115 @@ if (file_exists($imap_env_path)) {
         }
     }
 
+    // ----------------------------------------------------------------
+    // [다이얼 로직 2] 역 선택 다이얼 (신규 추가됨)
+    // ----------------------------------------------------------------
+    function renderStationDials(lineName) {
+        const stations = STATION_DB[lineName] || ['정보 없음'];
+        
+        // 역 리스트 반으로 나누기
+        const midIndex = Math.ceil(stations.length / 2);
+        const leftStations = stations.slice(0, midIndex);
+        const rightStations = stations.slice(midIndex);
+
+        // 상단 라벨 업데이트 (범위 표시)
+        const leftLabel = leftStations.length > 0 ? `${leftStations[0]} ~ ${leftStations[leftStations.length-1]}` : '';
+        const rightLabel = rightStations.length > 0 ? `${rightStations[0]} ~ ${rightStations[rightStations.length-1]}` : '';
+        
+        document.getElementById('labelLeft').innerText = leftLabel;
+        document.getElementById('labelRight').innerText = rightLabel;
+
+        // 다이얼 생성
+        createStationDial('stationDialLeft', leftStations, 'left');
+        createStationDial('stationDialRight', rightStations, 'right');
+    }
+
+    function createStationDial(containerId, list, side) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+
+        // Spacer (중앙 정렬을 위해 위아래 여백)
+        const spacer = document.createElement('div');
+        spacer.style.height = `${DIAL_ITEM_HEIGHT}px`; 
+        spacer.style.flexShrink = '0';
+        container.appendChild(spacer);
+
+        const fragment = document.createDocumentFragment();
+        list.forEach(name => {
+            const item = document.createElement('div');
+            item.className = 'station-dial-item';
+            item.innerText = name;
+            item.dataset.val = name;
+            fragment.appendChild(item);
+        });
+        container.appendChild(fragment);
+
+        const spacerBottom = spacer.cloneNode(true);
+        container.appendChild(spacerBottom);
+
+        // 스크롤 이벤트 (좌우 상호 배제 로직 포함)
+        container.onscroll = function() {
+            updateActiveStation(container, side);
+        };
+
+        // 초기화 (첫번째 아이템 선택)
+        setTimeout(() => {
+            container.scrollTop = 0;
+            updateActiveStation(container, side);
+        }, 100);
+    }
+
+    function updateActiveStation(container, side) {
+        let index = Math.round(container.scrollTop / DIAL_ITEM_HEIGHT);
+        const items = container.querySelectorAll('.station-dial-item');
+        if (items.length === 0) return;
+        if (index < 0) index = 0;
+        if (index >= items.length) index = items.length - 1;
+
+        // 현재 컨테이너 활성화 처리
+        const prevActive = container.querySelector('.station-dial-item.active');
+        if (prevActive) prevActive.classList.remove('active');
+        
+        const target = items[index];
+        target.classList.add('active');
+
+        // [중요] 반대쪽 다이얼의 선택 해제 (시각적 처리)
+        // 왼쪽을 움직이면 오른쪽 선택을 끄고, 오른쪽을 움직이면 왼쪽 선택을 끔
+        const otherSideId = (side === 'left') ? 'stationDialRight' : 'stationDialLeft';
+        const otherContainer = document.getElementById(otherSideId);
+        const otherActive = otherContainer.querySelector('.station-dial-item.active');
+        
+        if (otherActive) {
+            // 스크롤 중인 쪽이 우선권을 가짐
+            otherActive.classList.remove('active');
+        }
+
+        // 리포트 데이터 업데이트
+        report.detail = target.innerText + '역에 있어요';
+        updateSentenceBox();
+    }
+
+    // ----------------------------------------------------------------
+    // 공통 로직
+    // ----------------------------------------------------------------
+
     function updateReportDetailFromDial() {
-        report.detail = `${dialValues.d1}${dialValues.d2}편성 ${dialValues.d3}호차`;
+        if (report.isInside) {
+            report.detail = `${dialValues.d1}${dialValues.d2}편성 ${dialValues.d3}호차`;
+        }
+        // 외부는 updateActiveStation에서 실시간으로 처리됨
     }
     
-    // [중요] 8자리 16진수 코드 생성
     function generateReceiptCode() {
         return Array.from({length: 8}, () => Math.floor(Math.random() * 16).toString(16)).join('');
     }
 
-    // ----------------------------------------------------
-    // [핵심] 클립보드 복사 함수 (강력한 호환성)
-    // ----------------------------------------------------
     function copyToClipboard(text) {
-        // 1. 최신 방식 (navigator.clipboard)
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text).catch(err => {
-                // 실패 시 구형 방식 시도
                 fallbackCopyTextToClipboard(text);
             });
         } else {
-            // 2. 구형 방식 (execCommand)
             fallbackCopyTextToClipboard(text);
         }
     }
@@ -565,30 +632,16 @@ if (file_exists($imap_env_path)) {
     function fallbackCopyTextToClipboard(text) {
         const textArea = document.createElement("textarea");
         textArea.value = text;
-        
-        // 화면 밖으로 숨김
-        textArea.style.top = "0";
-        textArea.style.left = "0";
-        textArea.style.position = "fixed";
-
+        textArea.style.top = "0"; textArea.style.left = "0"; textArea.style.position = "fixed";
         document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-
-        try {
-            document.execCommand('copy');
-        } catch (err) {
-            console.error('Fallback copy failed', err);
-        }
-
+        textArea.focus(); textArea.select();
+        try { document.execCommand('copy'); } catch (err) { console.error('Fallback copy failed', err); }
         document.body.removeChild(textArea);
     }
 
-    // ----------------------------------------------------
-    // [수정됨] 제출 로직: 전송 -> 복사(알림) -> 문자창
-    // ----------------------------------------------------
+    // 최종 제출
     function submitDialData() { 
-        updateReportDetailFromDial(); 
+        updateReportDetailFromDial(); // 내부일 때만 번호 조합 업데이트, 외부는 이미 되어있음
         
         const code = generateReceiptCode();
         let finalSentence = makeSentence();
@@ -617,51 +670,6 @@ if (file_exists($imap_env_path)) {
         const encodedBody = encodeURIComponent(displaySentence);
         const separator = navigator.userAgent.match(/iPhone/i) ? "&" : "?";
         location.href = "sms:" + targetEmail + separator + "body=" + encodedBody;
-    }
-
-    function renderStationList(lineName) {
-        els.stationList.innerHTML = '';
-        const stations = STATION_DB[lineName] || ['역 정보 없음'];
-        const fragment = document.createDocumentFragment();
-        stations.forEach(station => {
-            const chip = document.createElement('div');
-            chip.className = 'station-chip'; chip.innerText = station;
-            chip.onclick = () => {
-                const prev = document.querySelectorAll('.station-chip.selected');
-                prev.forEach(p => p.classList.remove('selected'));
-                chip.classList.add('selected');
-                
-                report.detail = station + '역에 있어요';
-                
-                const code = generateReceiptCode();
-                let finalSentence = makeSentence();
-                
-                let displaySentence = finalSentence + `\n\n[접수코드: ${code}]`;
-                els.sentenceBox.innerText = displaySentence;
-
-                if(!confirm("신고 내용을 전송하시겠습니까?")) return;
-
-                const targetEmail = "<?= isset($myEmail) ? $myEmail : 'busanminwon@gmail.com' ?>"; 
-                fetch('save_report.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        content: finalSentence,
-                        token: code 
-                    })
-                }).catch(err => console.error(err));
-
-                // 복사 및 알림
-                copyToClipboard(code);
-                alert(`접수코드(${code})가 복사되었습니다.`);
-
-                const encodedBody = encodeURIComponent(displaySentence);
-                const separator = navigator.userAgent.match(/iPhone/i) ? "&" : "?";
-                location.href = "sms:" + targetEmail + separator + "body=" + encodedBody;
-            };
-            fragment.appendChild(chip);
-        });
-        els.stationList.appendChild(fragment);
     }
 
     function openHelp() { els.modal.style.display = "flex"; }
