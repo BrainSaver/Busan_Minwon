@@ -85,7 +85,7 @@ if (file_exists($imap_env_path)) {
     
     button.nav-btn { 
         width: 100%; min-height: 80px;
-        background: #ffffff; color: #333; 
+        background: #c2c2c2ff; color: #333; 
         border: 2px solid var(--border-color); 
         border-radius: 20px; font-size: 1.3rem; font-weight: 700;
         cursor: pointer; box-shadow: 0 6px 0px var(--border-color);
