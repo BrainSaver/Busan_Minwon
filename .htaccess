@@ -1,9 +1,9 @@
-<Files "imap.env">
-Order Allow,Deny
-Deny from all
-</Files>
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
 
-<Files "api.env">
-Order Allow,Deny
-Deny from all
-</Files>
+<FilesMatch "\.env$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

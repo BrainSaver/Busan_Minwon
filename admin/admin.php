@@ -2,23 +2,26 @@
 session_start();
 require '../db_connect.php';
 
-// 로그인 확인 (필요시 주석 해제)
-/*
-if (!isset($_SESSION['logged_in'])) {
-    echo "<script>alert('로그인이 필요합니다.'); location.href='login.php';</script>";
-    exit();
+// ---------------------------------------------------------
+// [NEW] 0. 오래된 익명 데이터 자동 삭제 (5분 경과)
+// ---------------------------------------------------------
+try {
+    // created_at이 현재시간보다 5분(INTERVAL 5 MINUTE) 이전이면서
+    // 여전히 phone이 '익명'인 데이터는 삭제
+    $del_sql = "DELETE FROM reports WHERE phone = '익명' AND created_at < DATE_SUB(NOW(), INTERVAL 5 MINUTE)";
+    $pdo->exec($del_sql);
+} catch (PDOException $e) {
+    // 삭제 중 에러는 무시하거나 로그 남김
 }
-*/
 
 // ---------------------------------------------------------
 // 1. 더블 필터링 로직 (장소 AND 호선)
 // ---------------------------------------------------------
-// URL 파라미터 받기 (기본값 'all')
-$loc_filter = isset($_GET['loc']) ? $_GET['loc'] : 'all';   // all, inside, outside
-$line_filter = isset($_GET['line']) ? $_GET['line'] : 'all'; // all, 1, 2, 3, 4
+$loc_filter = isset($_GET['loc']) ? $_GET['loc'] : 'all';   
+$line_filter = isset($_GET['line']) ? $_GET['line'] : 'all'; 
 
-// 동적 쿼리 생성
-$sql = "SELECT * FROM reports WHERE 1=1"; // 기본 참 조건
+// [수정됨] 기본 조건에 "익명이 아닌 것"만 조회하도록 변경
+$sql = "SELECT * FROM reports WHERE phone != '익명'"; 
 $params = [];
 
 // [조건 1] 장소 필터
@@ -47,7 +50,6 @@ try {
 // ---------------------------------------------------------
 // 2. 통계 데이터 계산
 // ---------------------------------------------------------
-$stats = [];
 $keywords = [
     '잡상인' => ['잡상인', '물건', '판매'],
     '냉/난방' => ['에어컨', '히터', '덥', '춥', '온도'],
@@ -89,133 +91,41 @@ $stats_json = json_encode($stats_count);
         .container { max-width: 1100px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         h2 { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
         
-        /* -------------------------------------------
-           필터 컨트롤 영역 (2단 토글 디자인)
-        ------------------------------------------- */
         .control-panel {
-            background-color: #f8f9fa;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid #e9ecef;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
+            background-color: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 20px; border: 1px solid #e9ecef;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
         }
-
-        .filter-section {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .filter-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .filter-label {
-            font-weight: bold;
-            color: #495057;
-            font-size: 0.9rem;
-            width: 40px;
-        }
-
-        .toggle-group {
-            display: flex;
-            background: #fff;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        .toggle-btn {
-            padding: 6px 14px;
-            text-decoration: none;
-            color: #495057;
-            font-size: 0.9rem;
-            border-right: 1px solid #ced4da;
-            transition: all 0.2s;
-        }
+        .filter-section { display: flex; flex-direction: column; gap: 10px; }
+        .filter-row { display: flex; align-items: center; gap: 10px; }
+        .filter-label { font-weight: bold; color: #495057; font-size: 0.9rem; width: 40px; }
+        .toggle-group { display: flex; background: #fff; border: 1px solid #ced4da; border-radius: 6px; overflow: hidden; }
+        .toggle-btn { padding: 6px 14px; text-decoration: none; color: #495057; font-size: 0.9rem; border-right: 1px solid #ced4da; transition: all 0.2s; }
         .toggle-btn:last-child { border-right: none; }
         .toggle-btn:hover { background-color: #f1f3f5; }
-        
-        /* 활성화 된 버튼 스타일 */
-        .toggle-btn.active {
-            background-color: #3b82f6;
-            color: white;
-            font-weight: bold;
-        }
-
-        /* 오른쪽 버튼 그룹 */
-        .action-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-action {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            font-weight: bold;
-            cursor: pointer;
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            text-decoration: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+        .toggle-btn.active { background-color: #3b82f6; color: white; font-weight: bold; }
+        .action-group { display: flex; gap: 10px; }
+        .btn-action { padding: 10px 16px; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: bold; cursor: pointer; color: white; display: flex; align-items: center; gap: 5px; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .btn-stat { background-color: #6c757d; }
-        .btn-stat:hover { background-color: #5a6268; }
         .btn-sms { background-color: #4c6ef5; }
-        .btn-sms:hover { background-color: #3b5bdb; }
 
-
-        /* 테이블 스타일 */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; word-break: break-all; }
         th { background-color: #f8f9fa; font-weight: bold; color: #333; }
-        tr:hover { background-color: #f8f9fb; }
-
-        /* 컬럼 너비 */
-        th:nth-child(1) { width: 5%; }  /* No */
-        th:nth-child(2) { width: 12%; } /* 신고 시간 */
-        th:nth-child(3) { width: 18%; } /* 위치 */
-        th:nth-child(4) { width: 13%; } /* 전화번호 */
-        th:nth-child(5) { width: 32%; } /* 신고 내용 */
-        th:nth-child(6) { width: 8%; }  /* 상태 */
-        th:nth-child(7) { width: 12%; } /* 관리 */
-
-        /* 뱃지 및 버튼 */
+        th:nth-child(1) { width: 5%; } th:nth-child(2) { width: 12%; } th:nth-child(3) { width: 18%; }
+        th:nth-child(4) { width: 13%; } th:nth-child(5) { width: 32%; } th:nth-child(6) { width: 8%; } th:nth-child(7) { width: 12%; }
+        
         .badge { padding: 5px 10px; border-radius: 15px; font-size: 0.85rem; font-weight: bold; color: #fff; display: inline-block; white-space: nowrap; }
         .badge.waiting { background-color: #ffc107; color: #000; } 
         .badge.done { background-color: #28a745; } 
 
-        .btn-process, .btn-reopen {
-            color: white; border: none; padding: 6px 10px; 
-            border-radius: 4px; cursor: pointer; font-size: 0.85rem; width: 100%;
-        }
+        .btn-process, .btn-reopen { color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; width: 100%; }
         .btn-process { background-color: #0b5ed7; }
-        .btn-process:hover { background-color: #0a58ca; }
         .btn-reopen { background-color: #dc3545; }
-        .btn-reopen:hover { background-color: #c82333; }
-        
         .empty-msg { text-align: center; padding: 30px; color: #666; }
 
-        /* 통계 모달 */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
-        }
-        .modal-content {
-            background: white; width: 90%; max-width: 500px; padding: 25px;
-            border-radius: 15px; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
+        /* 모달 스타일 */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 90%; max-width: 500px; padding: 25px; border-radius: 15px; position: relative; }
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #888; }
         .stat-row { display: flex; align-items: center; margin-bottom: 12px; }
         .stat-label { width: 80px; font-weight: bold; font-size: 0.9rem; }
@@ -274,7 +184,6 @@ $stats_json = json_encode($stats_count);
         <tbody>
             <?php if (count($reports) > 0): ?>
                 <?php foreach ($reports as $row): 
-                    // 위치 정보 추출 로직
                     $full_content = $row['content'];
                     $parts = explode('지금', $full_content);
                     $situation_text = trim($parts[0]); 
@@ -313,7 +222,10 @@ $stats_json = json_encode($stats_count);
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="7" class="empty-msg">해당 조건의 민원 내역이 없습니다.</td>
+                    <td colspan="7" class="empty-msg">
+                        매칭된 민원 내역이 없습니다.<br>
+                        <small>(전화번호 매칭 전 데이터는 표시되지 않습니다.)</small>
+                    </td>
                 </tr>
             <?php endif; ?>
         </tbody>
@@ -326,14 +238,11 @@ $stats_json = json_encode($stats_count);
         <h3 style="text-align:center; margin-top:0;">📈 신고 유형별 통계</h3>
         <hr style="border:0; border-top:1px solid #eee; margin:15px 0;">
         <div id="statBody"></div>
-        <div style="text-align:center; margin-top:20px; color:#888; font-size:0.8rem;">
-            * 내용 키워드 기준 자동 분류 (현재 리스트 기준)
-        </div>
+        <div style="text-align:center; margin-top:20px; color:#888; font-size:0.8rem;">* 내용 키워드 기준 자동 분류</div>
     </div>
 </div>
 
 <script>
-    // 자동 새로고침 (현재 필터 상태 loc, line 모두 유지됨)
     let lastStatus = ""; 
     getStatus().then(status => { lastStatus = status; });
 
@@ -354,15 +263,11 @@ $stats_json = json_encode($stats_count);
         } catch (e) { return "error"; }
     }
 
-    // 통계 모달 로직
     const statsData = <?php echo $stats_json; ?>;
     const modal = document.getElementById('statModal');
     const statBody = document.getElementById('statBody');
 
-    function openStats() {
-        modal.style.display = 'flex';
-        renderStats();
-    }
+    function openStats() { modal.style.display = 'flex'; renderStats(); }
     function closeStats() { modal.style.display = 'none'; }
     window.onclick = function(event) { if (event.target == modal) closeStats(); }
 
@@ -370,10 +275,7 @@ $stats_json = json_encode($stats_count);
         statBody.innerHTML = '';
         let total = 0;
         for (let key in statsData) total += statsData[key];
-        if(total === 0) {
-            statBody.innerHTML = '<div style="text-align:center; padding:20px;">데이터가 없습니다.</div>';
-            return;
-        }
+        if(total === 0) { statBody.innerHTML = '<div style="text-align:center;">데이터가 없습니다.</div>'; return; }
         for (let [key, val] of Object.entries(statsData)) {
             const percent = (val / total) * 100;
             const html = `
@@ -386,6 +288,5 @@ $stats_json = json_encode($stats_count);
         }
     }
 </script>
-
 </body>
 </html>

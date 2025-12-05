@@ -1,14 +1,5 @@
 <?php
-// main.php
-$imap_env_path = __DIR__ . '/admin/imap.env';
 $myEmail = 'busanminwon@gmail.com'; 
-
-if (file_exists($imap_env_path)) {
-    $content = file_get_contents($imap_env_path);
-    if (preg_match('/GMAIL_ID\s*=\s*["\']?([^"\']+)["\']?/', $content, $matches)) {
-        $myEmail = $matches[1];
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="ko">
