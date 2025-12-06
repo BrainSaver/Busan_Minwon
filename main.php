@@ -399,7 +399,7 @@ if (file_exists($imap_env_path)) {
             const div = document.createElement('div');
             div.id = 'guide-inner-content';
             div.innerHTML = `
-                <img src="train_guide.jpg" alt="차량번호 안내">
+                <img src="train_num_guide.jpg" alt="차량번호 안내">
                 <p>호선과 차량번호는 이곳에 있습니다.<br>참고해주세요.</p>
             `;
             els.guideBox.appendChild(div);
