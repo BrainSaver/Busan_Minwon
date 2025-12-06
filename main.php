@@ -57,9 +57,9 @@ if (file_exists($imap_env_path)) {
     }
 
     #sentenceBox {
-        font-size: 1.7rem;
+        font-size: 1.5rem;
         color: #1e3a8a;
-        min-height: 80px; line-height: 1.3; font-weight: 700;
+        min-height: 70px; line-height: 1.3; font-weight: 700;
         word-break: keep-all;
     }
 
@@ -102,7 +102,7 @@ if (file_exists($imap_env_path)) {
     .message-img-container img {
         max-width: 100%; 
         height: auto; 
-        max-height: 200px; 
+        max-height: 250px; 
         object-fit: contain;
     }
 
@@ -399,7 +399,7 @@ if (file_exists($imap_env_path)) {
             const div = document.createElement('div');
             div.id = 'guide-inner-content';
             div.innerHTML = `
-                <img src="train_num_guide.jpg" alt="차량번호 안내" style="width: 20%; height: auto; max-height: none;">
+                <img src="train_num_guide.jpg" alt="차량번호 안내" style="width: 60%; height: auto; max-height: none;">
                 <p>호선과 차량번호는 이곳에 있습니다.<br>참고해주세요.</p>
             `;
             els.guideBox.appendChild(div);
