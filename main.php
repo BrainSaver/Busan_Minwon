@@ -57,14 +57,14 @@ if (file_exists($imap_env_path)) {
     }
 
     #sentenceBox {
-        font-size: 1.1rem;
+        font-size: 1.3rem;
         color: #1e3a8a;
-        min-height: 35px; line-height: 1.3; font-weight: 600;
+        min-height: 70px; line-height: 1.3; font-weight: 700;
         word-break: keep-all;
     }
 
     #guideBox {
-        min-height: 40px; 
+        min-height: 70px; 
         color: #333;
     }
     

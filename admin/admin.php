@@ -6,32 +6,28 @@ require '../db_connect.php';
 // [NEW] 0. 오래된 익명 데이터 자동 삭제 (5분 경과)
 // ---------------------------------------------------------
 try {
-    // created_at이 현재시간보다 5분(INTERVAL 5 MINUTE) 이전이면서
-    // 여전히 phone이 '익명'인 데이터는 삭제
     $del_sql = "DELETE FROM reports WHERE phone = '익명' AND created_at < DATE_SUB(NOW(), INTERVAL 5 MINUTE)";
     $pdo->exec($del_sql);
 } catch (PDOException $e) {
-    // 삭제 중 에러는 무시하거나 로그 남김
+    // 삭제 중 에러 무시
 }
 
 // ---------------------------------------------------------
-// 1. 더블 필터링 로직 (장소 AND 호선)
+// 1. 필터링 로직
 // ---------------------------------------------------------
 $loc_filter = isset($_GET['loc']) ? $_GET['loc'] : 'all';   
 $line_filter = isset($_GET['line']) ? $_GET['line'] : 'all'; 
 
-// [수정됨] 기본 조건에 "익명이 아닌 것"만 조회하도록 변경
+// 익명이 아닌 데이터만 조회
 $sql = "SELECT * FROM reports WHERE phone != '익명'"; 
 $params = [];
 
-// [조건 1] 장소 필터
 if ($loc_filter === 'inside') {
     $sql .= " AND content LIKE '%지하철 안%'";
 } elseif ($loc_filter === 'outside') {
     $sql .= " AND content LIKE '%지하철 밖%'";
 }
 
-// [조건 2] 호선 필터
 if (in_array($line_filter, ['1', '2', '3', '4'])) {
     $sql .= " AND content LIKE ?"; 
     $params[] = "%{$line_filter}호선%";
@@ -88,7 +84,7 @@ $stats_json = json_encode($stats_count);
     <title>관리자 민원 관리 페이지</title>
     <style>
         body { font-family: 'Noto Sans KR', sans-serif; background-color: #f4f6f9; padding: 20px; margin: 0; }
-        .container { max-width: 1100px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         h2 { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
         
         .control-panel {
@@ -108,11 +104,20 @@ $stats_json = json_encode($stats_count);
         .btn-stat { background-color: #6c757d; }
         .btn-sms { background-color: #4c6ef5; }
 
+        /* [수정] 테이블 컬럼 너비 조정 (접수코드 추가됨) */
         table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; word-break: break-all; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; word-break: break-all; vertical-align: middle; }
         th { background-color: #f8f9fa; font-weight: bold; color: #333; }
-        th:nth-child(1) { width: 5%; } th:nth-child(2) { width: 12%; } th:nth-child(3) { width: 18%; }
-        th:nth-child(4) { width: 13%; } th:nth-child(5) { width: 32%; } th:nth-child(6) { width: 8%; } th:nth-child(7) { width: 12%; }
+        
+        /* 컬럼 비율 재설정 (총 8개) */
+        th:nth-child(1) { width: 5%; }  /* No */
+        th:nth-child(2) { width: 11%; } /* 신고 시간 */
+        th:nth-child(3) { width: 15%; } /* 위치 */
+        th:nth-child(4) { width: 12%; } /* 전화번호 */
+        th:nth-child(5) { width: 10%; } /* 접수코드 (NEW) */
+        th:nth-child(6) { width: 27%; } /* 신고 내용 */
+        th:nth-child(7) { width: 8%; }  /* 상태 */
+        th:nth-child(8) { width: 12%; } /* 관리 */
         
         .badge { padding: 5px 10px; border-radius: 15px; font-size: 0.85rem; font-weight: bold; color: #fff; display: inline-block; white-space: nowrap; }
         .badge.waiting { background-color: #ffc107; color: #000; } 
@@ -123,7 +128,6 @@ $stats_json = json_encode($stats_count);
         .btn-reopen { background-color: #dc3545; }
         .empty-msg { text-align: center; padding: 30px; color: #666; }
 
-        /* 모달 스타일 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: white; width: 90%; max-width: 500px; padding: 25px; border-radius: 15px; position: relative; }
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: #888; }
@@ -176,7 +180,7 @@ $stats_json = json_encode($stats_count);
                 <th>신고 시간</th>
                 <th>위치</th>
                 <th>전화번호</th>
-                <th>신고 내용</th>
+                <th>접수코드</th> <th>신고 내용</th>
                 <th>상태</th>
                 <th>관리</th>
             </tr>
@@ -185,6 +189,19 @@ $stats_json = json_encode($stats_count);
             <?php if (count($reports) > 0): ?>
                 <?php foreach ($reports as $row): 
                     $full_content = $row['content'];
+                    $token_text = '-';
+
+                    // 1. [접수코드: ...] 추출 및 제거 로직
+                    if (preg_match('/\[접수코드:\s*([^\]]+)\]/', $full_content, $matches)) {
+                        $token_text = $matches[1]; // 코드만 추출
+                        $full_content = str_replace($matches[0], '', $full_content); // 본문에서 삭제
+                    } 
+                    // DB에 token 컬럼이 있다면 우선 사용
+                    if (isset($row['token']) && !empty($row['token'])) {
+                        $token_text = $row['token'];
+                    }
+
+                    // 2. 위치 분리 ("지금" 기준)
                     $parts = explode('지금', $full_content);
                     $situation_text = trim($parts[0]); 
                     $location_text = isset($parts[1]) ? trim($parts[1]) : '-';
@@ -193,8 +210,17 @@ $stats_json = json_encode($stats_count);
                 <tr>
                     <td><?php echo $row['id']; ?></td>
                     <td><?php echo date('m-d H:i', strtotime($row['created_at'])); ?></td>
-                    <td style="color: #0b5ed7; font-weight: bold;"><?php echo htmlspecialchars($location_text); ?></td>
+                    
+                    <td style="color: #0b5ed7; font-weight: bold;">
+                        <?php echo htmlspecialchars($location_text); ?>
+                    </td>
+                    
                     <td><?php echo htmlspecialchars($row['phone']); ?></td>
+                    
+                    <td style="color: #666; font-weight: bold; font-size:0.9rem;">
+                        <?php echo htmlspecialchars($token_text); ?>
+                    </td>
+
                     <td><?php echo nl2br(htmlspecialchars($situation_text)); ?></td>
                     <td>
                         <?php if ($row['status'] == '접수대기'): ?>
@@ -222,7 +248,7 @@ $stats_json = json_encode($stats_count);
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="7" class="empty-msg">
+                    <td colspan="8" class="empty-msg">
                         매칭된 민원 내역이 없습니다.<br>
                         <small>(전화번호 매칭 전 데이터는 표시되지 않습니다.)</small>
                     </td>
