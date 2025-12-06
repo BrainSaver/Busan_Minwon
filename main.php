@@ -80,7 +80,7 @@ if (file_exists($imap_env_path)) {
         animation: fadeIn 0.5s ease;
     }
     #guide-inner-content img {
-        height: 80px; width: auto; max-width: 100%;
+        width: 80%; height: auto;
         border-radius: 6px; margin-bottom: 5px;
         border: 1px solid #eee;
         object-fit: contain;
@@ -385,7 +385,7 @@ if (file_exists($imap_env_path)) {
             1: "지금 어디 계신가요?", 
             2: "어떤 상황인가요?", 
             3: "몇 호선인가요?", 
-            4: (report.isInside ? "호선과 차량 번호를 맞춰주세요." : "현재 무슨 역에 계신가요?") 
+            4: (report.isInside ? "사진을 참고하여 \n 호선/편성/호차를 맞춰주세요." : "현재 무슨 역에 계신가요?") 
         };
         
         if(step !== 5) {
