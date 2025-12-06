@@ -1,5 +1,14 @@
 <?php
+// main.php
+$imap_env_path = __DIR__ . '/admin/imap.env';
 $myEmail = 'busanminwon@gmail.com'; 
+
+if (file_exists($imap_env_path)) {
+    $content = file_get_contents($imap_env_path);
+    if (preg_match('/GMAIL_ID\s*=\s*["\']?([^"\']+)["\']?/', $content, $matches)) {
+        $myEmail = $matches[1];
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="ko">
@@ -19,9 +28,9 @@ $myEmail = 'busanminwon@gmail.com';
         --text-main: #222;
         --border-color: #e5e7eb;
         
-        /* 다이얼 크기 변수 */
+        /* [수정] 다이얼 크기 축소 (한 화면에 다 넣기 위해) */
         --dial-item-height: 60px; 
-        --dial-container-height: 180px; 
+        --dial-container-height: 160px; 
     }
 
     /* -------------------------------------------
@@ -32,31 +41,60 @@ $myEmail = 'busanminwon@gmail.com';
         font-family: "Pretendard", -apple-system, sans-serif;
         color: var(--text-main);
         display: flex; flex-direction: column;
-        height: 100vh; overflow: hidden;
-        padding: 15px; box-sizing: border-box;
+        height: 100vh; overflow: hidden; /* 전체 스크롤 방지 */
+        padding: 10px; box-sizing: border-box;
     }
 
     .content-box {
         background: var(--box-bg);
-        border-radius: 24px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-        padding: 20px;
-        text-align: center; margin-bottom: 15px;
-        display: flex; align-items: center; justify-content: center;
+        border-radius: 16px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        padding: 12px;
+        text-align: center; margin-bottom: 8px; /* 마진 축소 */
+        display: flex; flex-direction: column; 
+        align-items: center; justify-content: center;
         flex-shrink: 0;
+        transition: all 0.3s ease;
     }
 
     #sentenceBox {
-        font-size: 1.5rem; color: #1e3a8a;
-        min-height: 50px; line-height: 1.5; font-weight: 600;
+        font-size: 1.3rem; /* 폰트 축소 */
+        color: #1e3a8a;
+        min-height: 70px; line-height: 1.5; font-weight: 800;
         word-break: keep-all;
     }
 
     #guideBox {
-        font-size: 1.5rem; font-weight: 800; color: #333;
-        min-height: 50px; line-height: 1.4; word-break: keep-all;
+        min-height: 40px; 
+        color: #333;
     }
-    #guideBox h2 { margin: 0; font-size: inherit; }
+    
+    #guideText {
+        font-size: 1.25rem; font-weight: 800; margin: 0; line-height: 1.2; word-break: keep-all;
+    }
+
+    /* [수정] 가이드 이미지 컨테이너 (콤팩트하게) */
+    #guide-inner-content {
+        margin-top: 8px;
+        width: 100%;
+        display: flex; flex-direction: column; align-items: center;
+        animation: fadeIn 0.5s ease;
+    }
+    #guide-inner-content img {
+        /* 이미지 크기 제한 */
+        height: 80px; width: auto; max-width: 100%;
+        border-radius: 6px; margin-bottom: 5px;
+        border: 1px solid #eee;
+        object-fit: contain;
+    }
+    #guide-inner-content p {
+        font-size: 0.85rem; color: #666; margin: 0; line-height: 1.3; font-weight: normal;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
     /* -------------------------------------------
        3. 입력 영역 & 버튼
@@ -64,51 +102,76 @@ $myEmail = 'busanminwon@gmail.com';
     #inputArea {
         flex: 1; display: flex; flex-direction: column;
         justify-content: flex-start; align-items: center;
-        overflow-y: auto; padding-top: 10px;
+        overflow-y: auto; 
+        padding-top: 5px; padding-bottom: 10px; /* 하단 패딩 최소화 */
     }
 
+    /* 기본 버튼 그리드 (2열) */
     .btn-container { 
         display: grid; grid-template-columns: 1fr 1fr; 
-        gap: 12px; width: 100%; padding-bottom: 15px;
+        gap: 8px; width: 100%; padding-bottom: 10px;
     }
     
     button.nav-btn { 
-        width: 100%; min-height: 80px;
+        width: 100%; min-height: 65px;
         background: #c2c2c2ff; color: #333; 
         border: 2px solid var(--border-color); 
-        border-radius: 20px; font-size: 1.3rem; font-weight: 700;
-        cursor: pointer; box-shadow: 0 6px 0px var(--border-color);
+        border-radius: 14px; font-size: 1.1rem; font-weight: 700;
+        cursor: pointer; box-shadow: 0 4px 0px var(--border-color);
         display: flex; align-items: center; justify-content: center;
-        word-break: keep-all; line-height: 1.3; padding: 15px;
+        word-break: keep-all; line-height: 1.2; padding: 8px;
         transition: transform 0.1s;
     }
     button.nav-btn:active { transform: translateY(4px); box-shadow: none; background: #f1f3f5; border-color: #d1d5db; }
 
+    /* [Step 1] 큰 이미지 버튼 */
+    .big-img-btn {
+        width: 100%; height: 150px; /* 높이 약간 더 축소 */
+        background: white; border: 2px solid #e5e7eb; border-radius: 18px;
+        cursor: pointer; display: flex; flex-direction: column;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        transition: transform 0.1s, border-color 0.2s;
+        margin-bottom: 12px; flex-shrink: 0; overflow: hidden; 
+    }
+    .big-img-btn:active { transform: scale(0.98); border-color: var(--primary-color); }
+    
+    .big-img-btn img {
+        width: 100%; height: 65%; object-fit: cover; display: block; 
+    }
+    .big-img-btn span {
+        height: 35%; display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem; font-weight: 800; color: #222;
+        background: #fff; border-top: 1px solid #f0f0f0;
+    }
+
     /* 직접 입력 */
-    #customInputArea { width: 100%; display: none; flex-direction: column; gap: 15px; margin-top: 10px; }
-    #customInput { padding: 20px; font-size: 1.2rem; border: 2px solid var(--primary-color); border-radius: 16px; width: 100%; box-sizing: border-box; resize: none; min-height: 150px; }
-    .input-confirm-btn { width: 100%; padding: 18px; background: var(--primary-color); color: white; border: none; border-radius: 16px; font-size: 1.3rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4); }
+    #customInputArea { width: 100%; display: none; flex-direction: column; gap: 10px; margin-top: 5px; }
+    #customInput { padding: 15px; font-size: 1.1rem; border: 2px solid var(--primary-color); border-radius: 12px; width: 100%; box-sizing: border-box; resize: none; min-height: 120px; }
+    .input-confirm-btn { width: 100%; padding: 15px; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4); }
 
     /* -------------------------------------------
        4. 다이얼(Picker) 스타일
     ------------------------------------------- */
-    .step-special-content { width: 100%; display: none; flex-direction: column; flex: 1; }
+    .step-special-content { 
+        width: 100%; display: none; flex-direction: column; flex: 1; align-items: center; 
+        /* 내용이 넘치지 않도록 조절 */
+        justify-content: flex-start; 
+    }
 
-    /* 공통 다이얼 래퍼 */
     .dial-wrapper { 
         position: relative; display: flex; justify-content: center; 
         width: 100%; 
-        height: var(--dial-container-height); 
-        background: #ffffff; border-radius: 24px; 
-        overflow: hidden; margin-bottom: 20px; 
+        height: var(--dial-container-height); /* 150px */
+        background: #ffffff; border-radius: 18px; 
+        overflow: hidden; margin-bottom: 10px; /* 마진 축소 */
         user-select: none; border: 2px solid #f1f3f5; 
+        flex-shrink: 0;
     }
 
-    /* 다이얼 하이라이트바 */
     .dial-highlight { 
         position: absolute; 
         top: 50%; left: 0; width: 100%; 
-        height: var(--dial-item-height); 
+        height: var(--dial-item-height); /* 50px */
         margin-top: calc(var(--dial-item-height) / -2); 
         background-color: rgba(59, 130, 246, 0.08); 
         border-top: 2px solid var(--primary-color); 
@@ -116,7 +179,6 @@ $myEmail = 'busanminwon@gmail.com';
         pointer-events: none; z-index: 1; 
     }
 
-    /* 기존(열차번호) 다이얼 컬럼 */
     .dial-column { 
         height: 100%; width: 60px; 
         overflow-y: scroll; 
@@ -126,86 +188,60 @@ $myEmail = 'busanminwon@gmail.com';
     }
     
     .dial-item { 
-        height: var(--dial-item-height); 
+        height: var(--dial-item-height); /* 50px */
         display: flex; align-items: center; justify-content: center; 
-        font-size: 26px; color: #ccc; 
+        font-size: 24px; color: #ccc; 
         scroll-snap-align: center; 
     }
     
     .dial-item.active { 
         color: #222; font-weight: bold; 
-        font-size: 34px; transform: scale(1.1); 
+        font-size: 30px; transform: scale(1.1); 
     }
-
     .dial-label { 
-        font-size: 20px; font-weight: bold; color: #333;
+        font-size: 18px; font-weight: bold; color: #333;
         margin: 0 5px; z-index: 2; padding-bottom: 3px; 
         display:flex; align-items:center;
     }
 
-    /* [신규] 역 선택 다이얼 전용 스타일 */
     .station-dial-column {
-        height: 100%; 
-        flex: 1; /* 50% 너비 차지 */
-        overflow-y: scroll; 
-        scroll-snap-type: y mandatory; 
-        -ms-overflow-style: none; scrollbar-width: none; 
-        z-index: 2; padding: 0;
-        border-right: 1px solid #eee; /* 구분선 */
+        height: 100%; flex: 1; overflow-y: scroll; 
+        scroll-snap-type: y mandatory; -ms-overflow-style: none; scrollbar-width: none; 
+        z-index: 2; padding: 0; border-right: 1px solid #eee; 
     }
     .station-dial-column:last-child { border-right: none; }
 
     .station-dial-item {
-        height: var(--dial-item-height); 
-        display: flex; align-items: center; justify-content: center; 
-        font-size: 18px; /* 역이름은 기니까 글자 작게 */
-        color: #ccc; 
-        scroll-snap-align: center; 
-        white-space: nowrap;
+        height: var(--dial-item-height); display: flex; align-items: center; justify-content: center; 
+        font-size: 16px; color: #ccc; scroll-snap-align: center; white-space: nowrap;
     }
     .station-dial-item.active {
-        color: #222; font-weight: bold; 
-        font-size: 22px; /* 선택시 커짐 */
-        transform: scale(1.05);
+        color: #222; font-weight: bold; font-size: 20px; transform: scale(1.05);
     }
-    /* 역 범위 라벨 */
     .station-range-label {
-        position: absolute; top: 0; width: 50%; height: 30px;
+        position: absolute; top: 0; width: 50%; height: 25px;
         display: flex; align-items: center; justify-content: center;
-        font-size: 13px; color: #666; font-weight: bold; background: #fff;
+        font-size: 12px; color: #666; font-weight: bold; background: #fff;
         z-index: 10; border-bottom: 1px solid #eee;
     }
 
     .btn-send-dial { 
-        width: 100%; padding: 20px; 
-        background: #ff6b6b; color: white; 
-        border: none; border-radius: 16px; 
-        font-size: 1.4rem; font-weight: bold; 
-        cursor: pointer; 
-        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4); 
-        margin-top: auto; margin-bottom: 120px; 
+        width: 100%; padding: 18px; background: #ff6b6b; color: white; 
+        border: none; border-radius: 16px; font-size: 1.3rem; font-weight: bold; 
+        cursor: pointer; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4); 
+        /* margin-top: auto 제거하고 고정 마진 부여 */
+        margin-top: 10px; margin-bottom: 20px; 
+        flex-shrink: 0;
     }
-
-    /* 모달 */
-    #help-modal { 
-        display: none; position: fixed; 
-        top: 0; left: 0; width: 100%; height: 100%; 
-        background: rgba(0,0,0,0.85); 
-        z-index: 1000; 
-        flex-direction: column; justify-content: center; align-items: center; 
-    }
-    .help-content { 
-        background: white; padding: 25px; 
-        border-radius: 20px; width: 85%; max-width: 350px; 
-        text-align: center; 
-    }
-    .help-content img { width: 100%; border-radius: 10px; margin-bottom: 20px; }
   </style>
 </head>
 <body>
 
   <div class="content-box" id="sentenceBox">🚇 신고 문장이 여기에 만들어집니다.</div>
-  <div class="content-box" id="guideBox"><h2 id="guideText">지금 어디 계신가요?</h2></div>
+  
+  <div class="content-box" id="guideBox">
+      <h2 id="guideText">지금 어디 계신가요?</h2>
+  </div>
 
   <div id="inputArea">
       <div id="customInputArea">
@@ -216,11 +252,6 @@ $myEmail = 'busanminwon@gmail.com';
 
       <div id="step4-content" class="step-special-content">
           
-          <div class="guide" id="dial-guide" style="display:none; font-size: 15px; color: #555; margin-bottom: 15px; text-align:center;">
-              위아래로 드래그하여 번호를 맞춰주세요.<br>
-              <button onclick="openHelp()" style="background:none; border:none; color:var(--primary-color); text-decoration:underline; cursor:pointer; margin-top:8px; font-size: 14px; font-weight: bold;">📷 번호가 어디 있나요?</button>
-          </div>
-
           <div class="dial-wrapper" id="dialWrapper" style="display:none;">
               <div class="dial-highlight"></div>
               <div class="dial-column" id="dialLine"></div><div class="dial-label">호선</div>
@@ -229,9 +260,9 @@ $myEmail = 'busanminwon@gmail.com';
           </div>
 
           <div class="dial-wrapper" id="stationDialWrapper" style="display:none;">
-             <div class="dial-highlight"></div> <div id="labelLeft" class="station-range-label" style="left:0;"></div>
+             <div class="dial-highlight"></div>
+             <div id="labelLeft" class="station-range-label" style="left:0;"></div>
              <div id="labelRight" class="station-range-label" style="right:0;"></div>
-
              <div class="station-dial-column" id="stationDialLeft"></div>
              <div class="station-dial-column" id="stationDialRight"></div>
           </div>
@@ -246,14 +277,6 @@ $myEmail = 'busanminwon@gmail.com';
       <input type="hidden" name="phone" value="익명"> 
       <input type="hidden" name="content" id="hiddenContent">
   </form>
-
-  <div id="help-modal">
-    <div class="help-content">
-        <img src="train_guide.jpg" alt="차량번호 예시">
-        <p style="font-size:1.4rem; color:#111; font-weight:bold; margin-bottom:25px; line-height:1.5;">출입문 위 또는<br>통로문 상단에 적힌<br>번호를 입력해주세요.</p>
-        <button onclick="closeHelp()" style="width:100%; padding:15px; background:var(--primary-color); color:white; border:none; border-radius:10px; font-size:1.1rem; font-weight:bold; cursor:pointer;">확인했습니다</button>
-    </div>
-  </div>
 
   <script>
     const STATION_DB = {
@@ -275,6 +298,7 @@ $myEmail = 'busanminwon@gmail.com';
     };
 
     const els = {
+        guideBox: document.getElementById('guideBox'),
         guideText: document.getElementById('guideText'),
         btnContainer: document.getElementById('btnContainer'),
         sentenceBox: document.getElementById('sentenceBox'),
@@ -282,24 +306,20 @@ $myEmail = 'busanminwon@gmail.com';
         customInput: document.getElementById('customInput'),
         charCount: document.getElementById('charCount'),
         step4Content: document.getElementById('step4-content'),
-        
-        // 다이얼 관련 요소
         dialWrapper: document.getElementById('dialWrapper'),
-        stationDialWrapper: document.getElementById('stationDialWrapper'), // 신규
-        dialGuide: document.getElementById('dial-guide'),
-        dialSubmitBtn: document.getElementById('dialSubmitBtn'),
-        modal: document.getElementById('help-modal')
+        stationDialWrapper: document.getElementById('stationDialWrapper'),
+        dialSubmitBtn: document.getElementById('dialSubmitBtn')
     };
 
     let currentStep = 1;
     let report = { place: '', situation: '', detailSituation: '', line: '', detail: '', isInside: true };
     let dialValues = { line: 1, d1: 0, d2: 0, d3: 1 };
     
-    // CSS 변수와 일치 (중요)
-    const DIAL_ITEM_HEIGHT = 60; 
+    // [중요] CSS와 일치하게 수정 (50)
+    const DIAL_ITEM_HEIGHT = 50; 
 
     const stepButtons = {
-      1: [ { text: '지하철 안이에요', action: () => { report.isInside = true; nextStep('place', '지하철 안인데'); } }, { text: '지하철 밖이에요', action: () => { report.isInside = false; nextStep('place', '지하철 밖인데'); } } ],
+      1: [ { text: '지하철 안이에요', img: 'inside.jpg', action: () => { report.isInside = true; nextStep('place', '지하철 안인데'); } }, { text: '지하철 밖이에요', img: 'outside.jpg', action: () => { report.isInside = false; nextStep('place', '지하철 밖인데'); } } ],
       2: { inside: [ { text: '잡상인이 있어요', action: () => handleSituationStep('잡상인이 있어요') }, { text: '싸움이 일어났어요', action: () => handleSituationStep('싸움이 일어났어요') }, { text: '온도 조절이 필요해요', action: () => handleSituationStep('온도 조절이 필요해요') }, { text: '민폐를 끼쳐요', action: () => handleSituationStep('민폐를 끼쳐요') }, { text: '청소가 필요해요', action: () => handleSituationStep('청소가 필요해요') }, { text: '시설물이 파손됐어요', action: () => handleSituationStep('시설물이 파손됐어요') }, { text: '직접 입력', action: () => handleSituationStep('직접 입력') } ], outside: [ { text: '구걸인/노숙인이 있어요', action: () => handleSituationStep('구걸인/노숙인이 있어요') }, { text: '무임승차를 봤어요', action: () => handleSituationStep('무임승차를 봤어요') }, { text: '소란을 피워요', action: () => handleSituationStep('소란을 피워요') }, { text: '청소가 안돼있어요', action: () => handleSituationStep('청소가 안돼있어요') }, { text: '시설물이 고장났어요', action: () => handleSituationStep('시설물이 고장났어요') }, { text: '화장실에 문제가 있어요', action: () => handleSituationStep('화장실에 문제가 있어요') }, { text: '직접 입력', action: () => handleSituationStep('직접 입력') } ] },
       3: [ { text: '1호선', action: () => nextStep('line', '1호선') }, { text: '2호선', action: () => nextStep('line', '2호선') }, { text: '3호선', action: () => nextStep('line', '3호선') }, { text: '4호선', action: () => nextStep('line', '4호선') } ]
     };
@@ -334,13 +354,50 @@ $myEmail = 'busanminwon@gmail.com';
             3: "몇 호선인가요?", 
             4: (report.isInside ? "호선과 차량 번호를 맞춰주세요." : "현재 무슨 역에 계신가요?") 
         };
+        
         els.guideText.innerText = texts[step];
+
+        // 가이드 이미지 초기화
+        const oldContent = document.getElementById('guide-inner-content');
+        if(oldContent) oldContent.remove();
+
+        // Step 4 내부일 때 이미지 추가
+        if (step === 4 && report.isInside) {
+            const div = document.createElement('div');
+            div.id = 'guide-inner-content';
+            div.innerHTML = `
+                <img src="train_guide.jpg" alt="차량번호 안내">
+                <p>호선과 차량번호는 이곳에 있습니다.<br>참고해주세요.</p>
+            `;
+            els.guideBox.appendChild(div);
+        }
     }
 
     function renderButtons(step) {
         els.btnContainer.innerHTML = '';
         if (step === 4) return;
         
+        if (step === 1) {
+            els.btnContainer.style.display = 'flex';
+            els.btnContainer.style.flexDirection = 'column';
+            
+            stepButtons[1].forEach(btn => {
+                const b = document.createElement('div');
+                b.className = 'big-img-btn';
+                b.onclick = btn.action;
+                const img = document.createElement('img');
+                img.src = btn.img; img.alt = btn.text;
+                const text = document.createElement('span');
+                text.innerText = btn.text;
+                b.appendChild(img); b.appendChild(text);
+                els.btnContainer.appendChild(b);
+            });
+            return;
+        } 
+        
+        els.btnContainer.style.display = 'grid';
+        els.btnContainer.style.flexDirection = 'row';
+
         const currentButtons = (step === 2) 
             ? (report.isInside ? stepButtons[2].inside : stepButtons[2].outside) 
             : stepButtons[step];
@@ -361,21 +418,16 @@ $myEmail = 'busanminwon@gmail.com';
 
         if (step === 4) {
             els.step4Content.style.display = 'flex';
-            // 공통: 전송 버튼 보이기
             els.dialSubmitBtn.style.display = 'block';
 
             if (report.isInside) {
-                // 내부: 열차 번호 다이얼
                 els.dialWrapper.style.display = 'flex';
-                els.dialGuide.style.display = 'block';
                 els.stationDialWrapper.style.display = 'none';
                 initDials(parseInt(report.line.replace('호선', '')) || 1);
             } else {
-                // 외부: 역 선택 다이얼 (수정됨)
                 els.dialWrapper.style.display = 'none';
-                els.dialGuide.style.display = 'none';
                 els.stationDialWrapper.style.display = 'flex';
-                renderStationDials(report.line); // 역 다이얼 렌더링 함수 호출
+                renderStationDials(report.line);
             }
         } else {
             renderButtons(step);
@@ -437,10 +489,8 @@ $myEmail = 'busanminwon@gmail.com';
         els.btnContainer.appendChild(fragment);
     }
 
-    // ----------------------------------------------------------------
-    // [다이얼 로직 1] 숫자 다이얼 (열차 번호용)
-    // ----------------------------------------------------------------
-    function createDial(elementId, start, end, initialVal) {
+    // 무한 루프 다이얼 로직
+    function createInfiniteDial(elementId, start, end, initialVal) {
         const container = document.getElementById(elementId);
         container.innerHTML = '';
         
@@ -449,44 +499,49 @@ $myEmail = 'busanminwon@gmail.com';
         spacer.style.flexShrink = '0';
         container.appendChild(spacer);
 
+        const REPEAT_COUNT = 30; // 30세트 반복
         const fragment = document.createDocumentFragment();
-        for (let i = start; i <= end; i++) {
-            const item = document.createElement('div');
-            item.className = 'dial-item';
-            item.innerText = i;
-            item.dataset.val = i;
-            fragment.appendChild(item);
+        
+        for (let k = 0; k < REPEAT_COUNT; k++) {
+            for (let i = start; i <= end; i++) {
+                const item = document.createElement('div');
+                item.className = 'dial-item';
+                item.innerText = i;
+                item.dataset.val = i;
+                fragment.appendChild(item);
+            }
         }
         container.appendChild(fragment);
         
         const spacerBottom = spacer.cloneNode(true);
         container.appendChild(spacerBottom);
 
-        container.addEventListener('scroll', () => updateActiveItem(container, elementId));
+        const distinctCount = (end - start + 1);
+        container.addEventListener('scroll', () => updateActiveInfiniteItem(container, elementId, distinctCount));
         
         setTimeout(() => {
             const items = container.querySelectorAll('.dial-item');
-            for (let i = 0; i < items.length; i++) {
-                if(parseInt(items[i].innerText) == initialVal) {
-                    container.scrollTop = i * DIAL_ITEM_HEIGHT; 
+            const middleSetIndex = Math.floor(REPEAT_COUNT / 2) * distinctCount; 
+            let targetIndex = -1;
+            for(let i=0; i<distinctCount; i++) {
+                if(parseInt(items[middleSetIndex + i].innerText) == initialVal) {
+                    targetIndex = middleSetIndex + i;
                     break;
                 }
             }
-            updateActiveItem(container, elementId);
+            if(targetIndex !== -1) {
+                container.scrollTop = targetIndex * DIAL_ITEM_HEIGHT;
+            } else {
+                container.scrollTop = middleSetIndex * DIAL_ITEM_HEIGHT;
+            }
+            updateActiveInfiniteItem(container, elementId, distinctCount);
         }, 100);
     }
 
-    function initDials(initialLine) {
-        createDial('dialLine', 1, 4, initialLine);
-        createDial('dial1', 0, 9, 0);
-        createDial('dial2', 0, 9, 0);
-        createDial('dial3', 1, 9, 1);
-    }
-
-    function updateActiveItem(container, dialId) {
+    function updateActiveInfiniteItem(container, dialId, distinctCount) {
         let index = Math.round(container.scrollTop / DIAL_ITEM_HEIGHT);
         const items = container.querySelectorAll('.dial-item');
-        if (index < 0) index = 0;
+        if (index < 0) index = 0; 
         if (index >= items.length) index = items.length - 1;
 
         const activeItem = container.querySelector('.dial-item.active');
@@ -495,7 +550,8 @@ $myEmail = 'busanminwon@gmail.com';
         const target = items[index];
         if (target) {
             target.classList.add('active');
-            const val = target.innerText;
+            const val = target.innerText; 
+            
             if (dialId === 'dialLine') dialValues.line = val;
             if (dialId === 'dial1') dialValues.d1 = val;
             if (dialId === 'dial2') dialValues.d2 = val;
@@ -507,25 +563,22 @@ $myEmail = 'busanminwon@gmail.com';
         }
     }
 
-    // ----------------------------------------------------------------
-    // [다이얼 로직 2] 역 선택 다이얼 (신규 추가됨)
-    // ----------------------------------------------------------------
+    function initDials(initialLine) {
+        createInfiniteDial('dialLine', 1, 4, initialLine);
+        createInfiniteDial('dial1', 0, 9, 0);
+        createInfiniteDial('dial2', 0, 9, 0);
+        createInfiniteDial('dial3', 1, 9, 1);
+    }
+
     function renderStationDials(lineName) {
         const stations = STATION_DB[lineName] || ['정보 없음'];
-        
-        // 역 리스트 반으로 나누기
         const midIndex = Math.ceil(stations.length / 2);
         const leftStations = stations.slice(0, midIndex);
         const rightStations = stations.slice(midIndex);
-
-        // 상단 라벨 업데이트 (범위 표시)
         const leftLabel = leftStations.length > 0 ? `${leftStations[0]} ~ ${leftStations[leftStations.length-1]}` : '';
         const rightLabel = rightStations.length > 0 ? `${rightStations[0]} ~ ${rightStations[rightStations.length-1]}` : '';
-        
         document.getElementById('labelLeft').innerText = leftLabel;
         document.getElementById('labelRight').innerText = rightLabel;
-
-        // 다이얼 생성
         createStationDial('stationDialLeft', leftStations, 'left');
         createStationDial('stationDialRight', rightStations, 'right');
     }
@@ -533,77 +586,43 @@ $myEmail = 'busanminwon@gmail.com';
     function createStationDial(containerId, list, side) {
         const container = document.getElementById(containerId);
         container.innerHTML = '';
-
-        // Spacer (중앙 정렬을 위해 위아래 여백)
         const spacer = document.createElement('div');
-        spacer.style.height = `${DIAL_ITEM_HEIGHT}px`; 
-        spacer.style.flexShrink = '0';
+        spacer.style.height = `${DIAL_ITEM_HEIGHT}px`; spacer.style.flexShrink = '0';
         container.appendChild(spacer);
-
         const fragment = document.createDocumentFragment();
         list.forEach(name => {
             const item = document.createElement('div');
-            item.className = 'station-dial-item';
-            item.innerText = name;
-            item.dataset.val = name;
+            item.className = 'station-dial-item'; item.innerText = name; item.dataset.val = name;
             fragment.appendChild(item);
         });
         container.appendChild(fragment);
-
         const spacerBottom = spacer.cloneNode(true);
         container.appendChild(spacerBottom);
-
-        // 스크롤 이벤트 (좌우 상호 배제 로직 포함)
-        container.onscroll = function() {
-            updateActiveStation(container, side);
-        };
-
-        // 초기화 (첫번째 아이템 선택)
-        setTimeout(() => {
-            container.scrollTop = 0;
-            updateActiveStation(container, side);
-        }, 100);
+        container.onscroll = function() { updateActiveStation(container, side); };
+        setTimeout(() => { container.scrollTop = 0; updateActiveStation(container, side); }, 100);
     }
 
     function updateActiveStation(container, side) {
         let index = Math.round(container.scrollTop / DIAL_ITEM_HEIGHT);
         const items = container.querySelectorAll('.station-dial-item');
         if (items.length === 0) return;
-        if (index < 0) index = 0;
-        if (index >= items.length) index = items.length - 1;
-
-        // 현재 컨테이너 활성화 처리
+        if (index < 0) index = 0; if (index >= items.length) index = items.length - 1;
         const prevActive = container.querySelector('.station-dial-item.active');
         if (prevActive) prevActive.classList.remove('active');
-        
         const target = items[index];
         target.classList.add('active');
-
-        // [중요] 반대쪽 다이얼의 선택 해제 (시각적 처리)
-        // 왼쪽을 움직이면 오른쪽 선택을 끄고, 오른쪽을 움직이면 왼쪽 선택을 끔
         const otherSideId = (side === 'left') ? 'stationDialRight' : 'stationDialLeft';
         const otherContainer = document.getElementById(otherSideId);
         const otherActive = otherContainer.querySelector('.station-dial-item.active');
-        
-        if (otherActive) {
-            // 스크롤 중인 쪽이 우선권을 가짐
-            otherActive.classList.remove('active');
-        }
-
-        // 리포트 데이터 업데이트
+        if (otherActive) otherActive.classList.remove('active');
         report.detail = target.innerText + '역에 있어요';
         updateSentenceBox();
     }
-
-    // ----------------------------------------------------------------
-    // 공통 로직
-    // ----------------------------------------------------------------
 
     function updateReportDetailFromDial() {
         if (report.isInside) {
             report.detail = `${dialValues.d1}${dialValues.d2}편성 ${dialValues.d3}호차`;
         }
-        // 외부는 updateActiveStation에서 실시간으로 처리됨
     }
     
     function generateReceiptCode() {
@@ -612,12 +631,8 @@ $myEmail = 'busanminwon@gmail.com';
 
     function copyToClipboard(text) {
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).catch(err => {
-                fallbackCopyTextToClipboard(text);
-            });
-        } else {
-            fallbackCopyTextToClipboard(text);
-        }
+            navigator.clipboard.writeText(text).catch(err => { fallbackCopyTextToClipboard(text); });
+        } else { fallbackCopyTextToClipboard(text); }
     }
 
     function fallbackCopyTextToClipboard(text) {
@@ -630,41 +645,25 @@ $myEmail = 'busanminwon@gmail.com';
         document.body.removeChild(textArea);
     }
 
-    // 최종 제출
     function submitDialData() { 
-        updateReportDetailFromDial(); // 내부일 때만 번호 조합 업데이트, 외부는 이미 되어있음
-        
+        updateReportDetailFromDial();
         const code = generateReceiptCode();
         let finalSentence = makeSentence();
-        
         let displaySentence = finalSentence + `\n\n[접수코드: ${code}]`;
         els.sentenceBox.innerText = displaySentence;
-
         if(!confirm("신고 내용을 전송하시겠습니까?")) return;
-
-        // 1. 서버 전송
         const targetEmail = "<?= isset($myEmail) ? $myEmail : 'busanminwon@gmail.com' ?>"; 
         fetch('save_report.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                content: finalSentence,
-                token: code 
-            }) 
+            body: JSON.stringify({ content: finalSentence, token: code }) 
         }).catch(err => console.error(err));
-
-        // 2. 접수 코드 클립보드 복사 & 알림
         copyToClipboard(code);
         alert(`접수코드(${code})가 복사되었습니다.\n잠시 후 문자 앱이 열리면 붙여넣기 할 필요 없이 바로 전송하세요.`);
-
-        // 3. 문자 전송 창 열기
         const encodedBody = encodeURIComponent(displaySentence);
         const separator = navigator.userAgent.match(/iPhone/i) ? "&" : "?";
         location.href = "sms:" + targetEmail + separator + "body=" + encodedBody;
     }
-
-    function openHelp() { els.modal.style.display = "flex"; }
-    function closeHelp() { els.modal.style.display = "none"; }
 
     window.addEventListener('popstate', function(event) {
         const state = event.state;
@@ -678,16 +677,9 @@ $myEmail = 'busanminwon@gmail.com';
         }
         currentStep = state.step;
         if (state.report) report = state.report; 
-
-        if (state.sub === 'customInput') {
-            showCustomInputStep();
-        } else if (state.sub === 'detail') {
-            showDetailStep(state.detailKey);
-        } else {
-            updateSentenceBox();
-            updateGuideText(currentStep);
-            updateUI(currentStep);
-        }
+        if (state.sub === 'customInput') showCustomInputStep();
+        else if (state.sub === 'detail') showDetailStep(state.detailKey);
+        else { updateSentenceBox(); updateGuideText(currentStep); updateUI(currentStep); }
     });
 
     history.replaceState({ step: 1, report: JSON.parse(JSON.stringify(report)) }, null, null);
