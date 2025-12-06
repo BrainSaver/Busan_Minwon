@@ -57,19 +57,19 @@ if (file_exists($imap_env_path)) {
     }
 
     #sentenceBox {
-        font-size: 1.1rem;
+        font-size: 1.7rem;
         color: #1e3a8a;
-        min-height: 35px; line-height: 1.3; font-weight: 600;
+        min-height: 80px; line-height: 1.3; font-weight: 700;
         word-break: keep-all;
     }
 
     #guideBox {
-        min-height: 40px; 
+        min-height: 60px; 
         color: #333;
     }
     
     #guideText {
-        font-size: 1.25rem; font-weight: 800; margin: 0; line-height: 1.2; word-break: keep-all;
+        font-size: 1.3rem; font-weight: 800; margin: 0; line-height: 1.2; word-break: keep-all;
     }
 
     /* 가이드 이미지 컨테이너 (내부용) */
