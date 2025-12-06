@@ -28,9 +28,8 @@ if (file_exists($imap_env_path)) {
         --text-main: #222;
         --border-color: #e5e7eb;
         
-        /* [수정] 다이얼 크기 축소 (한 화면에 다 넣기 위해) */
-        --dial-item-height: 60px; 
-        --dial-container-height: 160px; 
+        --dial-item-height: 50px; 
+        --dial-container-height: 150px; 
     }
 
     /* -------------------------------------------
@@ -41,7 +40,7 @@ if (file_exists($imap_env_path)) {
         font-family: "Pretendard", -apple-system, sans-serif;
         color: var(--text-main);
         display: flex; flex-direction: column;
-        height: 100vh; overflow: hidden; /* 전체 스크롤 방지 */
+        height: 100vh; overflow: hidden;
         padding: 10px; box-sizing: border-box;
     }
 
@@ -50,7 +49,7 @@ if (file_exists($imap_env_path)) {
         border-radius: 16px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         padding: 12px;
-        text-align: center; margin-bottom: 8px; /* 마진 축소 */
+        text-align: center; margin-bottom: 8px;
         display: flex; flex-direction: column; 
         align-items: center; justify-content: center;
         flex-shrink: 0;
@@ -58,9 +57,9 @@ if (file_exists($imap_env_path)) {
     }
 
     #sentenceBox {
-        font-size: 1.3rem; /* 폰트 축소 */
+        font-size: 1.1rem;
         color: #1e3a8a;
-        min-height: 70px; line-height: 1.5; font-weight: 800;
+        min-height: 35px; line-height: 1.3; font-weight: 600;
         word-break: keep-all;
     }
 
@@ -73,7 +72,7 @@ if (file_exists($imap_env_path)) {
         font-size: 1.25rem; font-weight: 800; margin: 0; line-height: 1.2; word-break: keep-all;
     }
 
-    /* [수정] 가이드 이미지 컨테이너 (콤팩트하게) */
+    /* 가이드 이미지 컨테이너 (내부용) */
     #guide-inner-content {
         margin-top: 8px;
         width: 100%;
@@ -81,7 +80,6 @@ if (file_exists($imap_env_path)) {
         animation: fadeIn 0.5s ease;
     }
     #guide-inner-content img {
-        /* 이미지 크기 제한 */
         height: 80px; width: auto; max-width: 100%;
         border-radius: 6px; margin-bottom: 5px;
         border: 1px solid #eee;
@@ -89,6 +87,23 @@ if (file_exists($imap_env_path)) {
     }
     #guide-inner-content p {
         font-size: 0.85rem; color: #666; margin: 0; line-height: 1.3; font-weight: normal;
+    }
+
+    /* [이동됨] 메시지 이미지 스타일 */
+    .message-img-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin-bottom: 8px;
+        margin-top: 10px; /* 위쪽 여백 추가 */
+        flex-shrink: 0;
+        animation: fadeIn 0.5s ease;
+    }
+    .message-img-container img {
+        max-width: 100%; 
+        height: auto; 
+        max-height: 200px; /* 세로 크기 적절히 제한 */
+        object-fit: contain;
     }
 
     @keyframes fadeIn {
@@ -103,10 +118,9 @@ if (file_exists($imap_env_path)) {
         flex: 1; display: flex; flex-direction: column;
         justify-content: flex-start; align-items: center;
         overflow-y: auto; 
-        padding-top: 5px; padding-bottom: 10px; /* 하단 패딩 최소화 */
+        padding-top: 5px; padding-bottom: 10px;
     }
 
-    /* 기본 버튼 그리드 (2열) */
     .btn-container { 
         display: grid; grid-template-columns: 1fr 1fr; 
         gap: 8px; width: 100%; padding-bottom: 10px;
@@ -126,7 +140,7 @@ if (file_exists($imap_env_path)) {
 
     /* [Step 1] 큰 이미지 버튼 */
     .big-img-btn {
-        width: 100%; height: 150px; /* 높이 약간 더 축소 */
+        width: 100%; height: 150px;
         background: white; border: 2px solid #e5e7eb; border-radius: 18px;
         cursor: pointer; display: flex; flex-direction: column;
         box-shadow: 0 4px 10px rgba(0,0,0,0.05);
@@ -154,16 +168,15 @@ if (file_exists($imap_env_path)) {
     ------------------------------------------- */
     .step-special-content { 
         width: 100%; display: none; flex-direction: column; flex: 1; align-items: center; 
-        /* 내용이 넘치지 않도록 조절 */
         justify-content: flex-start; 
     }
 
     .dial-wrapper { 
         position: relative; display: flex; justify-content: center; 
         width: 100%; 
-        height: var(--dial-container-height); /* 150px */
+        height: var(--dial-container-height); 
         background: #ffffff; border-radius: 18px; 
-        overflow: hidden; margin-bottom: 10px; /* 마진 축소 */
+        overflow: hidden; margin-bottom: 10px; 
         user-select: none; border: 2px solid #f1f3f5; 
         flex-shrink: 0;
     }
@@ -171,7 +184,7 @@ if (file_exists($imap_env_path)) {
     .dial-highlight { 
         position: absolute; 
         top: 50%; left: 0; width: 100%; 
-        height: var(--dial-item-height); /* 50px */
+        height: var(--dial-item-height); 
         margin-top: calc(var(--dial-item-height) / -2); 
         background-color: rgba(59, 130, 246, 0.08); 
         border-top: 2px solid var(--primary-color); 
@@ -188,7 +201,7 @@ if (file_exists($imap_env_path)) {
     }
     
     .dial-item { 
-        height: var(--dial-item-height); /* 50px */
+        height: var(--dial-item-height); 
         display: flex; align-items: center; justify-content: center; 
         font-size: 24px; color: #ccc; 
         scroll-snap-align: center; 
@@ -229,9 +242,16 @@ if (file_exists($imap_env_path)) {
         width: 100%; padding: 18px; background: #ff6b6b; color: white; 
         border: none; border-radius: 16px; font-size: 1.3rem; font-weight: bold; 
         cursor: pointer; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4); 
-        /* margin-top: auto 제거하고 고정 마진 부여 */
         margin-top: 10px; margin-bottom: 20px; 
         flex-shrink: 0;
+    }
+    
+    /* [Step 5] 최종 확인 텍스트 스타일 */
+    .confirm-text {
+        font-size: 1.1rem; line-height: 1.5; color: #333;
+        text-align: center; padding: 5px;
+        font-weight: 500;
+        word-break: keep-all;
     }
   </style>
 </head>
@@ -267,7 +287,16 @@ if (file_exists($imap_env_path)) {
              <div class="station-dial-column" id="stationDialRight"></div>
           </div>
 
-          <button class="btn-send-dial" id="dialSubmitBtn" style="display:none;" onclick="submitDialData()">🚀 신고 전송하기</button>
+          <button class="btn-send-dial" id="dialNextBtn" style="display:none; background-color:#3b82f6;" onclick="goToStep5()">다음</button>
+      </div>
+
+      <div id="step5-content" class="step-special-content" style="height:100%; display:none;">
+          
+          <div class="message-img-container">
+              <img src="message.png" alt="안내 메시지">
+          </div>
+
+          <button class="btn-send-dial" id="finalSubmitBtn" style="margin-top: auto;" onclick="finalSmsSend()">🚀 신고 전송하기</button>
       </div>
 
       <div class="btn-container" id="btnContainer"></div>
@@ -306,16 +335,17 @@ if (file_exists($imap_env_path)) {
         customInput: document.getElementById('customInput'),
         charCount: document.getElementById('charCount'),
         step4Content: document.getElementById('step4-content'),
+        step5Content: document.getElementById('step5-content'), 
         dialWrapper: document.getElementById('dialWrapper'),
         stationDialWrapper: document.getElementById('stationDialWrapper'),
-        dialSubmitBtn: document.getElementById('dialSubmitBtn')
+        dialNextBtn: document.getElementById('dialNextBtn') 
     };
 
     let currentStep = 1;
     let report = { place: '', situation: '', detailSituation: '', line: '', detail: '', isInside: true };
     let dialValues = { line: 1, d1: 0, d2: 0, d3: 1 };
+    let generatedCode = ''; 
     
-    // [중요] CSS와 일치하게 수정 (50)
     const DIAL_ITEM_HEIGHT = 50; 
 
     const stepButtons = {
@@ -330,8 +360,11 @@ if (file_exists($imap_env_path)) {
     }
 
     function updateSentenceBox() {
-        const text = makeSentence() || '🚇 신고 문장이 여기에 만들어집니다.';
-        els.sentenceBox.innerText = text;
+        let text = makeSentence();
+        if (currentStep === 5 && generatedCode) {
+            text += `\n\n[접수코드: ${generatedCode}]`;
+        }
+        els.sentenceBox.innerText = text || '🚇 신고 문장이 여기에 만들어집니다.';
     }
 
     function makeSentence() {
@@ -355,13 +388,13 @@ if (file_exists($imap_env_path)) {
             4: (report.isInside ? "호선과 차량 번호를 맞춰주세요." : "현재 무슨 역에 계신가요?") 
         };
         
-        els.guideText.innerText = texts[step];
+        if(step !== 5) {
+            els.guideText.innerText = texts[step];
+        }
 
-        // 가이드 이미지 초기화
         const oldContent = document.getElementById('guide-inner-content');
         if(oldContent) oldContent.remove();
 
-        // Step 4 내부일 때 이미지 추가
         if (step === 4 && report.isInside) {
             const div = document.createElement('div');
             div.id = 'guide-inner-content';
@@ -371,11 +404,29 @@ if (file_exists($imap_env_path)) {
             `;
             els.guideBox.appendChild(div);
         }
+
+        if (step === 5) {
+            els.guideText.innerText = ""; 
+            const div = document.createElement('div');
+            div.id = 'guide-inner-content';
+            div.className = 'confirm-text';
+            div.innerHTML = `
+                <div style="margin-bottom:10px;">
+                    접수코드(<span style="color:#3b82f6; font-weight:800; font-size:1.3rem;">${generatedCode}</span>)가 복사되었습니다.
+                </div>
+                <div style="font-size: 0.95rem; color:#555;">
+                    토큰값으로 신고내역을 조회할수 있습니다.<br>
+                    잠시 후 문자 앱이 열리면 안내사항과 토큰값이 존재합니다.<br>
+                    붙여넣기 할 필요 없이 바로 전송하세요.
+                </div>
+            `;
+            els.guideBox.appendChild(div);
+        }
     }
 
     function renderButtons(step) {
         els.btnContainer.innerHTML = '';
-        if (step === 4) return;
+        if (step === 4 || step === 5) return;
         
         if (step === 1) {
             els.btnContainer.style.display = 'flex';
@@ -415,10 +466,11 @@ if (file_exists($imap_env_path)) {
         els.btnContainer.innerHTML = '';
         els.customInputArea.style.display = 'none';
         els.step4Content.style.display = 'none';
+        els.step5Content.style.display = 'none';
 
         if (step === 4) {
             els.step4Content.style.display = 'flex';
-            els.dialSubmitBtn.style.display = 'block';
+            els.dialNextBtn.style.display = 'block';
 
             if (report.isInside) {
                 els.dialWrapper.style.display = 'flex';
@@ -429,6 +481,8 @@ if (file_exists($imap_env_path)) {
                 els.stationDialWrapper.style.display = 'flex';
                 renderStationDials(report.line);
             }
+        } else if (step === 5) {
+            els.step5Content.style.display = 'flex';
         } else {
             renderButtons(step);
         }
@@ -437,7 +491,7 @@ if (file_exists($imap_env_path)) {
     function nextStep(type, value) {
         if (type) report[type] = value;
         updateSentenceBox();
-        if (currentStep < 4) {
+        if (currentStep < 5) { 
             currentStep++;
             if (currentStep === 3 && report.isInside) { currentStep++; }
             pushHistoryState({ step: currentStep });
@@ -489,19 +543,15 @@ if (file_exists($imap_env_path)) {
         els.btnContainer.appendChild(fragment);
     }
 
-    // 무한 루프 다이얼 로직
     function createInfiniteDial(elementId, start, end, initialVal) {
         const container = document.getElementById(elementId);
         container.innerHTML = '';
-        
         const spacer = document.createElement('div');
         spacer.style.height = `${DIAL_ITEM_HEIGHT}px`; 
         spacer.style.flexShrink = '0';
         container.appendChild(spacer);
-
-        const REPEAT_COUNT = 30; // 30세트 반복
+        const REPEAT_COUNT = 30; 
         const fragment = document.createDocumentFragment();
-        
         for (let k = 0; k < REPEAT_COUNT; k++) {
             for (let i = start; i <= end; i++) {
                 const item = document.createElement('div');
@@ -512,28 +562,21 @@ if (file_exists($imap_env_path)) {
             }
         }
         container.appendChild(fragment);
-        
         const spacerBottom = spacer.cloneNode(true);
         container.appendChild(spacerBottom);
-
         const distinctCount = (end - start + 1);
         container.addEventListener('scroll', () => updateActiveInfiniteItem(container, elementId, distinctCount));
-        
         setTimeout(() => {
             const items = container.querySelectorAll('.dial-item');
             const middleSetIndex = Math.floor(REPEAT_COUNT / 2) * distinctCount; 
             let targetIndex = -1;
             for(let i=0; i<distinctCount; i++) {
                 if(parseInt(items[middleSetIndex + i].innerText) == initialVal) {
-                    targetIndex = middleSetIndex + i;
-                    break;
+                    targetIndex = middleSetIndex + i; break;
                 }
             }
-            if(targetIndex !== -1) {
-                container.scrollTop = targetIndex * DIAL_ITEM_HEIGHT;
-            } else {
-                container.scrollTop = middleSetIndex * DIAL_ITEM_HEIGHT;
-            }
+            if(targetIndex !== -1) container.scrollTop = targetIndex * DIAL_ITEM_HEIGHT;
+            else container.scrollTop = middleSetIndex * DIAL_ITEM_HEIGHT;
             updateActiveInfiniteItem(container, elementId, distinctCount);
         }, 100);
     }
@@ -541,22 +584,17 @@ if (file_exists($imap_env_path)) {
     function updateActiveInfiniteItem(container, dialId, distinctCount) {
         let index = Math.round(container.scrollTop / DIAL_ITEM_HEIGHT);
         const items = container.querySelectorAll('.dial-item');
-        if (index < 0) index = 0; 
-        if (index >= items.length) index = items.length - 1;
-
+        if (index < 0) index = 0; if (index >= items.length) index = items.length - 1;
         const activeItem = container.querySelector('.dial-item.active');
         if(activeItem) activeItem.classList.remove('active');
-
         const target = items[index];
         if (target) {
             target.classList.add('active');
             const val = target.innerText; 
-            
             if (dialId === 'dialLine') dialValues.line = val;
             if (dialId === 'dial1') dialValues.d1 = val;
             if (dialId === 'dial2') dialValues.d2 = val;
             if (dialId === 'dial3') dialValues.d3 = val;
-            
             report.line = dialValues.line + '호선';
             updateReportDetailFromDial();
             updateSentenceBox();
@@ -645,21 +683,31 @@ if (file_exists($imap_env_path)) {
         document.body.removeChild(textArea);
     }
 
-    function submitDialData() { 
-        updateReportDetailFromDial();
-        const code = generateReceiptCode();
+    function goToStep5() {
+        updateReportDetailFromDial(); 
+        generatedCode = generateReceiptCode(); 
+        
         let finalSentence = makeSentence();
-        let displaySentence = finalSentence + `\n\n[접수코드: ${code}]`;
-        els.sentenceBox.innerText = displaySentence;
-        if(!confirm("신고 내용을 전송하시겠습니까?")) return;
-        const targetEmail = "<?= isset($myEmail) ? $myEmail : 'busanminwon@gmail.com' ?>"; 
+        
         fetch('save_report.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content: finalSentence, token: code }) 
+            body: JSON.stringify({ 
+                content: finalSentence + `\n\n[접수코드: ${generatedCode}]`,
+                token: generatedCode 
+            }) 
         }).catch(err => console.error(err));
-        copyToClipboard(code);
-        alert(`접수코드(${code})가 복사되었습니다.\n잠시 후 문자 앱이 열리면 붙여넣기 할 필요 없이 바로 전송하세요.`);
+
+        nextStep(null, null);
+    }
+
+    function finalSmsSend() {
+        let finalSentence = makeSentence();
+        let displaySentence = finalSentence + `\n\n[접수코드: ${generatedCode}]`;
+        
+        copyToClipboard(generatedCode);
+        
+        const targetEmail = "<?= isset($myEmail) ? $myEmail : 'busanminwon@gmail.com' ?>"; 
         const encodedBody = encodeURIComponent(displaySentence);
         const separator = navigator.userAgent.match(/iPhone/i) ? "&" : "?";
         location.href = "sms:" + targetEmail + separator + "body=" + encodedBody;
