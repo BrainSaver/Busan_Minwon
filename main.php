@@ -687,10 +687,10 @@ if (file_exists($imap_env_path)) {
     function finalSmsSend() {
         let finalSentence = makeSentence();
         
-        let warningText = "지하철 허위 민원은 해당 운영 기관 또는 철도특별사법경찰대에 신고할 수 있습니다.\n";
-        warningText += "접수코드 수정시 신고가 접수되지 않습니다.\n\n";
+        let warningText = " ※ 허위 신고 시 철도안전법에 따라 처벌될 수 있습니다.\n\n";
+        warningText += "※ 접수코드 수정 시 신고가 접수되지 않습니다.\n\n";
 
-        let displaySentence = warningText + finalSentence + `\n\n[접수코드: ${generatedCode}]`;
+        let displaySentence = warningText + "신고 내용: " + finalSentence + `\n\n[접수코드: ${generatedCode}]`;
         
         copyToClipboard(generatedCode);
         
