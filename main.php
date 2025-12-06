@@ -57,14 +57,14 @@ if (file_exists($imap_env_path)) {
     }
 
     #sentenceBox {
-        font-size: 1.3rem;
+        font-size: 1.1rem;
         color: #1e3a8a;
-        min-height: 70px; line-height: 1.3; font-weight: 700;
+        min-height: 35px; line-height: 1.3; font-weight: 600;
         word-break: keep-all;
     }
 
     #guideBox {
-        min-height: 70px; 
+        min-height: 40px; 
         color: #333;
     }
     
@@ -89,20 +89,20 @@ if (file_exists($imap_env_path)) {
         font-size: 0.85rem; color: #666; margin: 0; line-height: 1.3; font-weight: normal;
     }
 
-    /* [이동됨] 메시지 이미지 스타일 */
+    /* 메시지 이미지 스타일 */
     .message-img-container {
         width: 100%;
         display: flex;
         justify-content: center;
         margin-bottom: 8px;
-        margin-top: 10px; /* 위쪽 여백 추가 */
+        margin-top: 10px; 
         flex-shrink: 0;
         animation: fadeIn 0.5s ease;
     }
     .message-img-container img {
         max-width: 100%; 
         height: auto; 
-        max-height: 200px; /* 세로 크기 적절히 제한 */
+        max-height: 200px; 
         object-fit: contain;
     }
 
@@ -683,6 +683,23 @@ if (file_exists($imap_env_path)) {
         document.body.removeChild(textArea);
     }
 
+    // [수정] 문자 메시지 본문에 경고 문구 추가
+    function finalSmsSend() {
+        let finalSentence = makeSentence();
+        
+        let warningText = "지하철 허위 민원은 해당 운영 기관 또는 철도특별사법경찰대에 신고할 수 있습니다.\n";
+        warningText += "접수코드 수정시 신고가 접수되지 않습니다.\n\n";
+
+        let displaySentence = warningText + finalSentence + `\n\n[접수코드: ${generatedCode}]`;
+        
+        copyToClipboard(generatedCode);
+        
+        const targetEmail = "<?= isset($myEmail) ? $myEmail : 'busanminwon@gmail.com' ?>"; 
+        const encodedBody = encodeURIComponent(displaySentence);
+        const separator = navigator.userAgent.match(/iPhone/i) ? "&" : "?";
+        location.href = "sms:" + targetEmail + separator + "body=" + encodedBody;
+    }
+
     function goToStep5() {
         updateReportDetailFromDial(); 
         generatedCode = generateReceiptCode(); 
@@ -699,18 +716,6 @@ if (file_exists($imap_env_path)) {
         }).catch(err => console.error(err));
 
         nextStep(null, null);
-    }
-
-    function finalSmsSend() {
-        let finalSentence = makeSentence();
-        let displaySentence = finalSentence + `\n\n[접수코드: ${generatedCode}]`;
-        
-        copyToClipboard(generatedCode);
-        
-        const targetEmail = "<?= isset($myEmail) ? $myEmail : 'busanminwon@gmail.com' ?>"; 
-        const encodedBody = encodeURIComponent(displaySentence);
-        const separator = navigator.userAgent.match(/iPhone/i) ? "&" : "?";
-        location.href = "sms:" + targetEmail + separator + "body=" + encodedBody;
     }
 
     window.addEventListener('popstate', function(event) {
