@@ -242,7 +242,7 @@ if (file_exists($imap_env_path)) {
         width: 100%; padding: 18px; background: #ff6b6b; color: white; 
         border: none; border-radius: 16px; font-size: 1.3rem; font-weight: bold; 
         cursor: pointer; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4); 
-        margin-top: 10px; margin-bottom: 20px; 
+        margin-top: 20px !important; margin-bottom: 20px; 
         flex-shrink: 0;
     }
     
@@ -413,6 +413,9 @@ if (file_exists($imap_env_path)) {
             div.innerHTML = `
                 <div style="margin-bottom:10px;">
                     접수코드(<span style="color:#3b82f6; font-weight:800; font-size:1.3rem;">${generatedCode}</span>)가 복사되었습니다.
+                </div>
+                <div style="margin-bottom:10px; color: red;">
+                문자 앱에서 수정되는 신고 내역은 수정되어 전송되지 않습니다!!
                 </div>
                 <div style="font-size: 0.95rem; color:#555;">
                     토큰값으로 신고내역을 조회할수 있습니다.<br>
