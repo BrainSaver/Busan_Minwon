@@ -139,10 +139,18 @@ if (file_exists($imap_env_path)) {
     .btn-container { 
         display: grid; grid-template-columns: 1fr 1fr; 
         gap: 8px; width: 100%; padding-bottom: 10px;
+
+        position: fixed;        /* 스크롤 상관없이 화면에 고정 */
+        bottom: 25px;           /* 바닥에서 20px 위로 띄움 */
+        left: 50%;              /* 가로 기준 중앙 */
+        transform: translateX(-50%); /* 정확한 중앙 정렬을 위한 보정 */
+        
+        width: 90%;             /* 화면 꽉 차지 않게 90%만 사용 (예쁨) */
+        z-index: 100;           /* 다른 요소들보다 무조건 위에 보이게 */
     }
     
     button.nav-btn { 
-        width: 100%; min-height: 65px;
+        width: 100%; min-height: 70px;
         background: #c2c2c2ff; color: #333; 
         border: 2px solid var(--border-color); 
         border-radius: 14px; font-size: 1.1rem; font-weight: 700;
@@ -579,7 +587,12 @@ if (file_exists($imap_env_path)) {
         const fragment = document.createDocumentFragment();
         currentButtons.forEach(btn => {
             const b = document.createElement('button');
-            b.className = 'nav-btn'; b.innerText = btn.text; b.onclick = btn.action;
+            b.className = 'nav-btn'; 
+            b.innerText = btn.text; 
+            b.onclick = btn.action;
+            if (btn.text === '직접 입력') {
+                b.style.gridColumn = "1 / -1"; // "span 2" 대신 "1 / -1"을 쓰면 더 확실하게 꽉 찹니다
+            }
             fragment.appendChild(b);
         });
         els.btnContainer.appendChild(fragment);
