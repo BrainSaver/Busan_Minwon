@@ -2,6 +2,78 @@
 session_start();
 require '../db_connect.php';
 
+// ----------------------
+// [추가] 로그아웃 처리
+// ----------------------
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header("Location: admin.php");
+    exit;
+}
+
+// ----------------------
+// [추가] 로그인 처리
+// ----------------------
+$admin_id = 'admin'; // 어드민 아이디
+$admin_pw = 'your_password'; // 어드민 비밀번호 (변경 필요)
+
+if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
+    // 로그인 폼 제출 처리
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login_id'], $_POST['login_pw'])) {
+        if ($_POST['login_id'] === $admin_id && $_POST['login_pw'] === $admin_pw) {
+            $_SESSION['is_admin'] = true;
+            header("Location: admin.php");
+            exit;
+        } else {
+            $login_error = "아이디 또는 비밀번호가 올바르지 않습니다.";
+        }
+    }
+    // 로그인 폼 출력 후 종료
+    ?>
+    <!DOCTYPE html>
+    <html lang="ko">
+    <head>
+        <meta charset="UTF-8">
+        <title>관리자 로그인</title>
+        <style>
+            body { background: #f4f6f9; font-family: 'Noto Sans KR', sans-serif; }
+            .login-box { max-width: 350px; margin: 80px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 30px; }
+            h2 { text-align: center; margin-bottom: 25px; }
+            .input-group { margin-bottom: 18px; }
+            label { display: block; margin-bottom: 6px; color: #333; font-weight: bold; }
+            input[type="text"], input[type="password"] { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 1rem; }
+            .btn-login { width: 100%; padding: 12px; background: #0b5ed7; color: #fff; border: none; border-radius: 5px; font-size: 1.05rem; font-weight: bold; cursor: pointer; }
+            .error-msg { color: #dc3545; text-align: center; margin-bottom: 10px; }
+        </style>
+    </head>
+    <body>
+        <div class="login-box">
+            <h2>관리자 로그인</h2>
+            <?php if (isset($login_error)): ?>
+                <div class="error-msg"><?=htmlspecialchars($login_error)?></div>
+            <?php endif; ?>
+            <form method="POST">
+                <div class="input-group">
+                    <label for="login_id">아이디</label>
+                    <input type="text" name="login_id" id="login_id" required>
+                </div>
+                <div class="input-group">
+                    <label for="login_pw">비밀번호</label>
+                    <input type="password" name="login_pw" id="login_pw" required>
+                </div>
+                <button type="submit" class="btn-login">로그인</button>
+            </form>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit;
+}
+
+// ----------------------
+// 이하 기존 코드 유지
+// ----------------------
+
 // ---------------------------------------------------------
 // [NEW] 0. 오래된 익명 데이터 자동 삭제 (5분 경과)
 // ---------------------------------------------------------
@@ -87,6 +159,10 @@ $stats_json = json_encode($stats_count);
         .container { max-width: 1200px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         h2 { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
         
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn-logout { padding: 8px 16px; background-color: #dc3545; color: #fff; border: none; border-radius: 5px; font-size: 0.9rem; font-weight: bold; cursor: pointer; text-decoration: none; }
+        .btn-logout:hover { background-color: #c82333; }
+        
         .control-panel {
             background-color: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 20px; border: 1px solid #e9ecef;
             display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;
@@ -141,7 +217,11 @@ $stats_json = json_encode($stats_count);
 <body>
 
 <div class="container">
-    <h2>👮‍♂️ 민원 신고 관리자 현황</h2>
+    <div class="header-row">
+        <h2 style="border-bottom: none; padding-bottom: 0; margin-bottom: 0;">👮‍♂️ 민원 신고 관리자 현황</h2>
+        <a href="?logout=1" class="btn-logout" onclick="return confirm('로그아웃 하시겠습니까?')">🚪 로그아웃</a>
+    </div>
+    <hr style="border: 0; border-top: 2px solid #333; margin-bottom: 20px;">
 
     <div class="control-panel">
         <div class="filter-section">
