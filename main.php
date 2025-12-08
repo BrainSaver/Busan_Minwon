@@ -36,7 +36,8 @@ if (file_exists($imap_env_path)) {
        2. 기본 레이아웃
     ------------------------------------------- */
     body {
-        margin: 0; background: var(--bg-color);
+        margin: 0; 
+        background: var(--bg-color);
         font-family: "Pretendard", -apple-system, sans-serif;
         color: var(--text-main);
         display: flex; flex-direction: column;
@@ -59,7 +60,9 @@ if (file_exists($imap_env_path)) {
     #sentenceBox {
         font-size: 1.5rem;
         color: #1e3a8a;
-        min-height: 70px; line-height: 1.3; font-weight: 700;
+        min-height: 70px; 
+        line-height: 1.3; 
+        font-weight: 700;
         word-break: keep-all;
     }
 
@@ -69,24 +72,36 @@ if (file_exists($imap_env_path)) {
     }
     
     #guideText {
-        font-size: 1.3rem; font-weight: 800; margin: 0; line-height: 1.2; word-break: keep-all;
+        font-size: 1.3rem; 
+        font-weight: 800; 
+        margin: 0; 
+        line-height: 1.2; 
+        word-break: keep-all;
     }
 
     /* 가이드 이미지 컨테이너 (내부용) */
     #guide-inner-content {
         margin-top: 8px;
         width: 100%;
-        display: flex; flex-direction: column; align-items: center;
+        display: flex; 
+        flex-direction: column;
+        align-items: center;
         animation: fadeIn 0.5s ease;
     }
     #guide-inner-content img {
-        width: 80%; height: auto;
-        border-radius: 6px; margin-bottom: 5px;
+        width: 80%; 
+        height: auto;
+        border-radius: 6px; 
+        margin-bottom: 5px;
         border: 1px solid #eee;
         object-fit: contain;
     }
     #guide-inner-content p {
-        font-size: 0.85rem; color: #666; margin: 0; line-height: 1.3; font-weight: normal;
+        font-size: 0.85rem; 
+        color: #666; 
+        margin: 0; 
+        line-height: 1.3; 
+        font-weight: normal;
     }
 
     /* 메시지 이미지 스타일 */
@@ -94,8 +109,8 @@ if (file_exists($imap_env_path)) {
         width: 100%;
         display: flex;
         justify-content: center;
-        margin-bottom: 8px;
-        margin-top: 10px; 
+        margin-bottom: 2px;
+        margin-top: -5px; 
         flex-shrink: 0;
         animation: fadeIn 0.5s ease;
     }
@@ -136,38 +151,92 @@ if (file_exists($imap_env_path)) {
         word-break: keep-all; line-height: 1.2; padding: 8px;
         transition: transform 0.1s;
     }
-    button.nav-btn:active { transform: translateY(4px); box-shadow: none; background: #f1f3f5; border-color: #d1d5db; }
+    button.nav-btn:active { 
+        transform: translateY(4px); 
+        box-shadow: none; 
+        background: #f1f3f5; 
+        border-color: #d1d5db; 
+    }
 
     /* [Step 1] 큰 이미지 버튼 */
     .big-img-btn {
-        width: 100%; height: 150px;
-        background: white; border: 2px solid #e5e7eb; border-radius: 18px;
-        cursor: pointer; display: flex; flex-direction: column;
+        width: 100%; 
+        height: 150px;
+        background: white; 
+        border: 2px solid #e5e7eb; 
+        border-radius: 18px;
+        cursor: pointer; 
+        display: flex; 
+        flex-direction: column;
         box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         transition: transform 0.1s, border-color 0.2s;
-        margin-bottom: 12px; flex-shrink: 0; overflow: hidden; 
+        margin-bottom: 12px; 
+        flex-shrink: 0; 
+        overflow: hidden; 
     }
-    .big-img-btn:active { transform: scale(0.98); border-color: var(--primary-color); }
+    .big-img-btn:active { 
+        transform: scale(0.98); 
+        border-color: var(--primary-color); 
+    }
     
     .big-img-btn img {
-        width: 100%; height: 65%; object-fit: cover; display: block; 
+        width: 100%; 
+        height: 65%; 
+        object-fit: cover; 
+        display: block; 
     }
     .big-img-btn span {
-        height: 35%; display: flex; align-items: center; justify-content: center;
-        font-size: 1.3rem; font-weight: 800; color: #222;
-        background: #fff; border-top: 1px solid #f0f0f0;
+        height: 35%; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center;
+        font-size: 1.3rem; 
+        font-weight: 800; 
+        color: #222;
+        background: #fff; 
+        border-top: 1px solid #f0f0f0;
     }
 
     /* 직접 입력 */
-    #customInputArea { width: 100%; display: none; flex-direction: column; gap: 10px; margin-top: 5px; }
-    #customInput { padding: 15px; font-size: 1.1rem; border: 2px solid var(--primary-color); border-radius: 12px; width: 100%; box-sizing: border-box; resize: none; min-height: 120px; }
-    .input-confirm-btn { width: 100%; padding: 15px; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4); }
+    #customInputArea { 
+        width: 100%; 
+        display: none; 
+        flex-direction: column; 
+        gap: 10px; 
+        margin-top: 5px; 
+    }
+    #customInput { 
+        padding: 15px; 
+        font-size: 1.1rem; 
+        border: 2px solid var(--primary-color); 
+        border-radius: 12px; 
+        width: 100%; 
+        box-sizing: border-box; 
+        resize: none; 
+        min-height: 120px; 
+    }
+    .input-confirm-btn { 
+        width: 100%; 
+        padding: 15px; 
+        background: var(--primary-color);
+        color: white; 
+        border: none; 
+        border-radius: 12px; 
+        font-size: 1.2rem; 
+        font-weight: bold; 
+        cursor: pointer; 
+        box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4); 
+    }
 
     /* -------------------------------------------
        4. 다이얼(Picker) 스타일
     ------------------------------------------- */
     .step-special-content { 
-        width: 100%; display: none; flex-direction: column; flex: 1; align-items: center; 
+        width: 100%; 
+        display: none; 
+        flex-direction: column; 
+        flex: 1; 
+        align-items: center; 
         justify-content: flex-start; 
     }
 
@@ -196,59 +265,110 @@ if (file_exists($imap_env_path)) {
         height: 100%; width: 60px; 
         overflow-y: scroll; 
         scroll-snap-type: y mandatory; 
-        -ms-overflow-style: none; scrollbar-width: none; 
+        -ms-overflow-style: none; 
+        scrollbar-width: none; 
         z-index: 2; padding: 0; 
     }
     
     .dial-item { 
         height: var(--dial-item-height); 
-        display: flex; align-items: center; justify-content: center; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
         font-size: 24px; color: #ccc; 
         scroll-snap-align: center; 
     }
     
     .dial-item.active { 
-        color: #222; font-weight: bold; 
-        font-size: 30px; transform: scale(1.1); 
+        color: #222; 
+        font-weight: bold; 
+        font-size: 30px; 
+        transform: scale(1.1); 
     }
     .dial-label { 
-        font-size: 18px; font-weight: bold; color: #333;
-        margin: 0 5px; z-index: 2; padding-bottom: 3px; 
-        display:flex; align-items:center;
+        font-size: 18px; 
+        font-weight: bold; 
+        color: #333;
+        margin: 0 5px; 
+        z-index: 2; 
+        padding-bottom: 3px; 
+        display:flex; 
+        align-items:center;
     }
 
     .station-dial-column {
-        height: 100%; flex: 1; overflow-y: scroll; 
-        scroll-snap-type: y mandatory; -ms-overflow-style: none; scrollbar-width: none; 
-        z-index: 2; padding: 0; border-right: 1px solid #eee; 
+        height: 100%; 
+        flex: 1;
+        overflow-y: scroll; 
+        scroll-snap-type: y mandatory; 
+        -ms-overflow-style: none; 
+        scrollbar-width: none; 
+        z-index: 2; 
+        padding: 0;
+        border-right: 1px solid #eee; 
     }
-    .station-dial-column:last-child { border-right: none; }
+    .station-dial-column:last-child {
+        border-right: none; 
+    }
 
     .station-dial-item {
-        height: var(--dial-item-height); display: flex; align-items: center; justify-content: center; 
-        font-size: 16px; color: #ccc; scroll-snap-align: center; white-space: nowrap;
+        height: var(--dial-item-height); 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        font-size: 16px;
+        color: #ccc; 
+        scroll-snap-align: center; 
+        white-space: nowrap;
     }
     .station-dial-item.active {
-        color: #222; font-weight: bold; font-size: 20px; transform: scale(1.05);
+        color: #222; 
+        font-weight: bold; 
+        font-size: 20px; 
+        transform: scale(1.05);
     }
     .station-range-label {
-        position: absolute; top: 0; width: 50%; height: 25px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 12px; color: #666; font-weight: bold; background: #fff;
-        z-index: 10; border-bottom: 1px solid #eee;
+        position: absolute; 
+        top: 0; 
+        width: 50%; 
+        height: 25px;
+        display: flex; 
+        align-items: center; 
+        justify-content: center;
+        font-size: 12px; 
+        color: #666; 
+        font-weight: bold; 
+        background: #fff;
+        z-index: 10; 
+        border-bottom: 1px solid #eee;
     }
 
     .btn-send-dial { 
-        width: 100%; padding: 18px; background: #ff6b6b; color: white; 
-        border: none; border-radius: 16px; font-size: 1.3rem; font-weight: bold; 
-        cursor: pointer; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4); 
-        margin-top: 20px !important; margin-bottom: 20px; 
-        flex-shrink: 0;
+    /* --- [1] 버튼 기본 꾸미기 (색상, 폰트 등) --- */
+        padding: 18px; 
+        background: #ff6b6b; 
+        color: white; 
+        border: none; 
+        border-radius: 16px; 
+        font-size: 1.3rem; 
+        font-weight: bold; 
+        cursor: pointer; 
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4); 
+        
+        position: fixed;        /* 스크롤 상관없이 화면에 고정 */
+        bottom: 20px;           /* 바닥에서 20px 위로 띄움 */
+        left: 50%;              /* 가로 기준 중앙 */
+        transform: translateX(-50%); /* 정확한 중앙 정렬을 위한 보정 */
+        
+        width: 90%;             /* 화면 꽉 차지 않게 90%만 사용 (예쁨) */
+        z-index: 100;           /* 다른 요소들보다 무조건 위에 보이게 */
     }
     
     /* [Step 5] 최종 확인 텍스트 스타일 */
     .confirm-text {
-        font-size: 1.1rem; line-height: 1.5; color: #333;
+        font-size: 1.1rem; 
+        line-height: 1.5; 
+        color: #333;
         text-align: center; padding: 5px;
         font-weight: 500;
         word-break: keep-all;
@@ -399,7 +519,7 @@ if (file_exists($imap_env_path)) {
             const div = document.createElement('div');
             div.id = 'guide-inner-content';
             div.innerHTML = `
-                <img src="train_num_guide.jpg" alt="차량번호 안내" style="width: 60%; height: auto; max-height: none;">
+                <img src="train_num_guide.jpg" alt="차량번호 안내" style="width: 40%; height: auto; max-height: none;">
                 <p>호선과 차량번호는 이곳에 있습니다.<br>참고해주세요.</p>
             `;
             els.guideBox.appendChild(div);
