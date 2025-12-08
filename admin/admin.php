@@ -54,13 +54,13 @@ $offset = ($page - 1) * $limit;
 $loc_filter = isset($_GET['loc']) ? $_GET['loc'] : 'all';   
 $line_filter = isset($_GET['line']) ? $_GET['line'] : 'all'; 
 $status_filter = isset($_GET['status']) ? $_GET['status'] : 'waiting';
-$cat_filter = isset($_GET['category']) ? $_GET['category'] : 'all'; // [NEW] 유형 필터
+$cat_filter = isset($_GET['category']) ? $_GET['category'] : 'all';
 
 // 검색어
 $search_phone = isset($_GET['search_phone']) ? trim($_GET['search_phone']) : '';
 $search_token = isset($_GET['search_token']) ? trim($_GET['search_token']) : '';
 
-// [키워드 정의] (요청하신 분류대로 매핑)
+// [키워드 정의]
 $keywords = [
     '잡상인' => ['잡상인', '물건', '판매'],
     '싸움' => ['싸움', '폭행', '욕설', '위협', '난동'],
@@ -83,10 +83,9 @@ elseif ($status_filter === 'completed') $where_sql .= " AND status = '처리완�
 if ($loc_filter === 'inside') $where_sql .= " AND content LIKE '%지하철 안%'";
 elseif ($loc_filter === 'outside') $where_sql .= " AND content LIKE '%지하철 밖%'";
 
-// 3. [NEW] 유형 필터 로직
+// 3. 유형 필터 로직
 if ($cat_filter !== 'all') {
     if ($cat_filter === '기타') {
-        // 기타: 위의 모든 키워드가 '포함되지 않는' 경우
         foreach ($keywords as $k => $words) {
             if ($k === '기타') continue;
             foreach ($words as $w) {
@@ -95,7 +94,6 @@ if ($cat_filter !== 'all') {
             }
         }
     } elseif (isset($keywords[$cat_filter])) {
-        // 특정 유형: 해당 키워드 중 하나라도 포함
         $like_clauses = [];
         foreach ($keywords[$cat_filter] as $word) {
             $like_clauses[] = "content LIKE ?";
@@ -139,7 +137,7 @@ try {
     $reports = $stmt->fetchAll();
 } catch (PDOException $e) { die("데이터 조회 실패"); }
 
-// [통계 계산] (현재 검색 조건 기준)
+// [통계 계산]
 $stats_count = array_fill_keys(array_keys($keywords), 0);
 $stat_sql = "SELECT content FROM reports $where_sql"; 
 $stat_stmt = $pdo->prepare($stat_sql);
@@ -195,11 +193,10 @@ $stats_json = json_encode($stats_count);
         .btn-bulk-exec { padding: 8px 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; }
         .bg-green { background: #28a745; } .bg-red { background: #dc3545; }
 
-        /* 유형별 일괄 선택 버튼 */
         .type-select-row { display: flex; gap: 10px; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; display: none; flex-wrap: wrap; }
         .btn-type-select { padding: 5px 12px; border: 1px solid #ccc; background: white; border-radius: 15px; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
         .btn-type-select:hover { background: #e9ecef; }
-        .btn-type-select.selected { background: #3b82f6; color: white; border-color: #3b82f6; } /* 선택 시 강조 */
+        .btn-type-select.selected { background: #3b82f6; color: white; border-color: #3b82f6; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
         th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; vertical-align: middle; word-break: break-all; }
@@ -259,7 +256,6 @@ $stats_json = json_encode($stats_count);
                     <a href="?loc=outside<?=$qs?>" class="toggle-btn <?=$loc_filter=='outside'?'active':''?>">외부</a>
                 </div>
             </div>
-            
             <div class="filter-row">
                 <span class="filter-label">유형</span>
                 <div class="toggle-group">
@@ -274,7 +270,6 @@ $stats_json = json_encode($stats_count);
                     <a href="?category=기타<?=$qs?>" class="toggle-btn <?=$cat_filter=='기타'?'active':''?>">기타</a>
                 </div>
             </div>
-
             <div class="filter-row">
                 <span class="filter-label">호선</span>
                 <div class="toggle-group">
@@ -331,21 +326,39 @@ $stats_json = json_encode($stats_count);
                 <?php foreach ($reports as $row): 
                     $full_content = $row['content'];
                     $token_text = isset($row['token']) && !empty($row['token']) ? $row['token'] : '-';
+                    
                     if ($token_text == '-' && preg_match('/\[접수코드:\s*([^\]]+)\]/', $full_content, $matches)) {
                         $token_text = $matches[1];
                         $full_content = str_replace($matches[0], '', $full_content);
-                    } else { $full_content = preg_replace('/\[\s*접수코드\s*:\s*[^\]]+\s*\]/', '', $full_content); }
+                    } else { 
+                        $full_content = preg_replace('/\[\s*접수코드\s*:\s*[^\]]+\s*\]/', '', $full_content); 
+                    }
 
-                    $location_display = ''; $situation_text = '';
+                    // 문장을 '지금' 기준으로 나눔
+                    $parts = explode('지금', $full_content); 
+                    $situation_text = trim($parts[0]);
+
+                    // [수정] 위치 표시 로직
+                    $location_display = '';
+                    $train_num = isset($row['train_num']) ? $row['train_num'] : '';
+
                     if (!empty($row['line'])) {
                         $location_display = $row['line'] . "호선";
-                        if (!empty($row['train_num'])) $location_display .= " " . $row['train_num'] . "편성";
+                        
+                        // train_num이 있는 경우
+                        if (!empty($train_num)) {
+                            // 숫자만 있으면 => 편성 번호
+                            if (ctype_digit((string)$train_num)) {
+                                $location_display .= " " . $train_num . "편성";
+                            } else {
+                                // 문자(역 이름)가 있으면 => 역 이름 그대로 표시
+                                $location_display .= " " . $train_num;
+                            }
+                        }
+                        
                         if (!empty($row['car_num'])) $location_display .= " " . $row['car_num'] . "호차";
-                        $parts = explode('지금', $full_content); $situation_text = trim($parts[0]);
                     } else {
-                        $parts = explode('지금', $full_content); $situation_text = trim($parts[0]); 
-                        $location_display = isset($parts[1]) ? trim($parts[1]) : '-';
-                        if(count($parts) < 2) { $situation_text = $full_content; $location_display = '-'; }
+                        $location_display = '-';
                     }
                 ?>
                 <tr class="report-row" data-content="<?=htmlspecialchars($situation_text)?>">
@@ -455,7 +468,6 @@ $stats_json = json_encode($stats_count);
             }
 
         } else {
-            // [수정] 취소 시 모든 체크박스 해제 및 버튼 스타일 초기화
             document.querySelectorAll('.row-chk, .chk-col input').forEach(chk => chk.checked = false);
             document.querySelectorAll('.btn-type-select').forEach(btn => btn.classList.remove('selected'));
             
@@ -472,19 +484,17 @@ $stats_json = json_encode($stats_count);
         checkboxes.forEach(chk => chk.checked = source.checked);
     }
 
-    // [수정] 유형별 선택 토글 (버튼 누를 때마다 체크/해제 반복)
     function selectByType(btn, type) {
         const keywords = keywordMap[type] || [];
         if (keywords.length === 0) return;
 
-        const isSelected = btn.classList.toggle('selected'); // 버튼 스타일 토글
+        const isSelected = btn.classList.toggle('selected');
         const rows = document.querySelectorAll('.report-row');
         let count = 0;
 
         rows.forEach(row => {
             const content = row.dataset.content;
             const chk = row.querySelector('.row-chk');
-            
             let matched = false;
             for (let w of keywords) {
                 if (content.includes(w)) {
@@ -492,16 +502,15 @@ $stats_json = json_encode($stats_count);
                     break;
                 }
             }
-
             if (matched) {
-                chk.checked = isSelected; // 버튼 상태에 따라 체크 or 해제
+                chk.checked = isSelected;
                 count++;
             }
         });
 
         if (isSelected && count === 0) {
             alert(`'${type}' 유형 항목이 현재 페이지에 없습니다.`);
-            btn.classList.remove('selected'); // 없으면 버튼 스타일 원복
+            btn.classList.remove('selected');
         }
     }
 
