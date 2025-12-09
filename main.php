@@ -23,7 +23,10 @@ if (file_exists($imap_env_path)) {
     
     /* [공통 UI 컴포넌트] */
     .content-box { background: var(--box-bg); border-radius: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 12px; text-align: center; margin-bottom: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease; }
-    #sentenceBox { font-size: 1.5rem; color: #1e3a8a; min-height: 70px; line-height: 1.3; font-weight: 700; word-break: keep-all; }
+    
+    /* white-space: pre-wrap 추가로 줄바꿈 허용 */
+    #sentenceBox { font-size: 1.5rem; color: #1e3a8a; min-height: 70px; line-height: 1.3; font-weight: 700; word-break: keep-all; white-space: pre-wrap; }
+    
     #guideBox { min-height: 60px; color: #333; }
     #guideText { font-size: 1.3rem; font-weight: 800; margin: 0; line-height: 1.2; word-break: keep-all; }
     
@@ -52,6 +55,12 @@ if (file_exists($imap_env_path)) {
     .input-confirm-btn { width: 100%; padding: 15px; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4); }
     
     .step-special-content { width: 100%; display: none; flex-direction: column; flex: 1; align-items: center; justify-content: flex-start; }
+
+    /* [수정됨] Step 4 다이얼 화면 하단 정렬 및 간격 조정 */
+    #step4-content {
+        justify-content: flex-end; /* 내용을 아래로 */
+        padding-bottom: 150px; /* 기존 110px -> 150px로 늘려 버튼과 간격 확보 */
+    }
     
     /* [다이얼 관련 스타일] */
     .dial-wrapper { position: relative; display: flex; justify-content: center; width: 100%; height: var(--dial-container-height); background: #ffffff; border-radius: 18px; overflow: hidden; margin-bottom: 10px; user-select: none; border: 2px solid #f1f3f5; flex-shrink: 0; }
@@ -82,7 +91,7 @@ if (file_exists($imap_env_path)) {
 </head>
 <body>
 
-  <div class="content-box" id="sentenceBox">🚇 신고 문장이 여기에 만들어집니다.</div>
+  <div class="content-box" id="sentenceBox">지하철 간단 신고 서비스</div>
   
   <div class="content-box" id="guideBox">
       <h2 id="guideText">지금 어디 계신가요?</h2>
@@ -129,8 +138,8 @@ if (file_exists($imap_env_path)) {
               </div>
               <button class="action-btn btn-cancel-outline" id="cancelReportBtn" onclick="cancelReport()">접수 취소</button>
               <button class="action-btn btn-resend" id="resendSmsBtn" style="display: none;" onclick="finalSmsSend()">📩 문자 앱 다시 열기</button>
+              <button class="action-btn btn-home-outline" onclick="goToMain()">메인화면</button>
           </div>
-          <button class="action-btn btn-home-outline" onclick="goToMain()">메인화면</button>
       </div>
 
       <div class="btn-container" id="btnContainer"></div>
@@ -189,36 +198,37 @@ if (file_exists($imap_env_path)) {
         history.pushState(newState, null, null);
     }
 
-function makeSentence() {
-    let sentence = '';
-    if (report.place) sentence += report.place + ' ';
-    
-    if (report.situation) { 
-        if (report.situation === '직접 입력') {
-            if (report.detailSituation) sentence += report.detailSituation + ' ';
-        } else {
-            sentence += report.situation;
-            if (report.detailSituation) sentence += `(${report.detailSituation})`;
-            sentence += ' ';
+    // 3줄 고정 문장 생성
+    function makeSentence() {
+        let line1 = report.place || '';
+        let line2 = '';
+        if (report.situation) { 
+            if (report.situation === '직접 입력') {
+                if (report.detailSituation) line2 = report.detailSituation;
+            } else {
+                line2 = report.situation;
+                if (report.detailSituation) line2 += `(${report.detailSituation})`;
+            }
         }
+        let line3 = '';
+        let locParts = [];
+        if (report.line) locParts.push('지금 ' + report.line);
+        if (report.detail) locParts.push(report.detail);
+        if (!report.isInside && report.specificLocation) {
+            locParts.push(`(${report.specificLocation})`);
+        }
+        line3 = locParts.join(' ');
+        let finalParts = [];
+        if (line1) finalParts.push(line1);
+        if (line2) finalParts.push(line2);
+        if (line3) finalParts.push(line3);
+        return finalParts.join('\n');
     }
-
-    // ★ [핵심 수정] 상세 위치를 '지금' 키워드보다 앞에 붙입니다.
-    // 이렇게 해야 관리자 페이지에서 '신고 내용' 칸에 상세 위치가 보입니다.
-    if (!report.isInside && report.specificLocation) {
-        sentence += ` (${report.specificLocation}) `;
-    }
-
-    if (report.line) sentence += '지금 ' + report.line + ' ';
-    if (report.detail) sentence += report.detail;
-    
-    return sentence.trim();
-}
 
     function updateSentenceBox() {
         let text = makeSentence();
         if ((currentStep === 5 || currentStep === 6) && generatedCode) { text += `\n\n[접수코드: ${generatedCode}]`; }
-        els.sentenceBox.innerText = text || '🚇 신고 문장이 여기에 만들어집니다.';
+        els.sentenceBox.innerText = text || '지하철 간단 신고 서비스';
     }
 
     function updateGuideText(step) {
@@ -359,15 +369,11 @@ function makeSentence() {
         }
     }
 
-    // [DB 전송 및 문자 생성 함수 - 강력한 붙여넣기]
     function goToStep5() {
         generatedCode = generateReceiptCode(); 
-        
         let finalSentence = makeSentence();
-
         let trainNumVal = '';
         let carNumVal = '';
-
         if (report.isInside) {
             trainNumVal = `${dialValues.d1}${dialValues.d2}`;
             carNumVal = `${dialValues.d3}`;
@@ -375,21 +381,18 @@ function makeSentence() {
             trainNumVal = report.stationName || ''; 
             carNumVal = ''; 
         }
-
         const payload = {
-            content: finalSentence + `\n\n[접수코드: ${generatedCode}]`, // 최종 문장
+            content: finalSentence + `\n\n[접수코드: ${generatedCode}]`,
             token: generatedCode,
             line: report.line,
             train_num: trainNumVal, 
             car_num: carNumVal
         };
-
         fetch('save_report.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         }).catch(err => console.error(err));
-
         nextStep(null, null);
     }
 
@@ -458,7 +461,6 @@ function makeSentence() {
         document.getElementById('labelRight').innerText = rightStations.length > 0 ? `${rightStations[0]} ~ ${rightStations[rightStations.length-1]}` : '';
         createStationDial('stationDialLeft', leftStations, 'left'); createStationDial('stationDialRight', rightStations, 'right');
         
-        // [초기값 설정]
         if (leftStations.length > 0) {
             report.stationName = leftStations[0];
             report.detail = leftStations[0] + '역에 있어요';
@@ -512,22 +514,13 @@ function makeSentence() {
 
     function finalSmsSend() {
         let finalSentence = makeSentence();
-        
-        // SMS 보낼 때도 강제로 상세 위치 붙여서 보냄
-        if (!report.isInside && report.specificLocation && finalSentence.indexOf(report.specificLocation) === -1) {
-            finalSentence += " (" + report.specificLocation + ")";
-        }
-
         let warningText = " ※ 허위 신고 시 철도안전법에 따라 처벌될 수 있습니다.\n\n";
         warningText += "※ 접수코드 수정 시 신고가 접수되지 않습니다.\n\n";
         let displaySentence = warningText + "신고 내용: " + finalSentence + `\n\n[접수코드: ${generatedCode}]`;
-        
         copyToClipboard(generatedCode);
-        
         const targetEmail = "<?= isset($myEmail) ? $myEmail : 'busanminwon@gmail.com' ?>"; 
         const encodedBody = encodeURIComponent(displaySentence);
         const separator = navigator.userAgent.match(/iPhone/i) ? "&" : "?";
-        
         smsAppOpened = true; 
         location.href = "sms:" + targetEmail + separator + "body=" + encodedBody;
     }
@@ -552,7 +545,6 @@ function makeSentence() {
 
     function cancelReport() {
         if(!confirm("정말로 접수를 취소하시겠습니까?")) return;
-        
         fetch('cancel_report.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -562,15 +554,12 @@ function makeSentence() {
         .then(data => {
             if(data.status === 'success') {
                 if(statusCheckInterval) clearInterval(statusCheckInterval); 
-                
                 els.resultStatusTitle.innerText = "접수 취소됨";
                 els.resultStatusTitle.style.color = "#ff6b6b";
                 els.resultStatusDesc.innerText = "민원 신고가 취소되었습니다.";
                 els.statusBox.style.borderColor = "#ff6b6b";
-                
                 els.cancelReportBtn.style.display = 'none';
                 els.resendSmsBtn.style.display = 'none';
-                
             } else {
                 alert("취소 실패: " + (data.msg || '알 수 없는 오류'));
             }
@@ -583,7 +572,6 @@ function makeSentence() {
 
     function checkReportStatus() {
         if(statusCheckInterval) clearInterval(statusCheckInterval);
-
         const poll = () => {
             fetch('check_report_status.php?token=' + generatedCode)
                 .then(res => res.json())
@@ -593,7 +581,6 @@ function makeSentence() {
                     const resendBtn = els.resendSmsBtn;
                     const cancelBtn = els.cancelReportBtn;
                     const box = els.statusBox;
-
                     if (data.verified) {
                         title.innerText = "접수 대기";
                         title.style.color = "#3b82f6"; 
@@ -613,7 +600,6 @@ function makeSentence() {
                     console.error("Status Check Error:", err);
                 });
         };
-
         poll(); 
         statusCheckInterval = setInterval(poll, 3000); 
     }
@@ -628,7 +614,6 @@ function makeSentence() {
         }
         currentStep = state.step;
         if (state.report) report = state.report; 
-        
         if (state.sub === 'customInput') {
              showCustomInputStep();
         } else if (state.sub === 'locationInput') {
@@ -644,3 +629,5 @@ function makeSentence() {
     updateGuideText(1);
     renderButtons(1);
   </script>
+</body>
+</html>
